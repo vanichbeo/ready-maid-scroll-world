@@ -1,0 +1,16 @@
+{
+  "name": "Ready Maid Agency",
+  "short_name": "Ready Maid",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020b1d",
+  "theme_color": "#020b1d",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

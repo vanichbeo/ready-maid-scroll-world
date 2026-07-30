@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://readymaid.my/sitemap.xml

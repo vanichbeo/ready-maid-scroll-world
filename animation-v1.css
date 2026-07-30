@@ -1,0 +1,491 @@
+/* =========================================================
+   SCROLL WORLD ANIMATION V1
+   Zone interaction, route lines, zoom, service panel
+   Ready Maid Agency
+   ========================================================= */
+
+/* ---- SVG Route Lines Overlay ---- */
+.animation-routes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.animation-routes.active {
+  opacity: 1;
+}
+
+.route-line {
+  fill: none;
+  stroke: var(--cyan, #13d7ff);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(19, 215, 255, 0.6))
+          drop-shadow(0 0 18px rgba(19, 215, 255, 0.25));
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.route-line.animating {
+  opacity: 1;
+  animation: draw-route 0.8s ease-out forwards;
+}
+.route-line.drawn {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+
+@keyframes draw-route {
+  0%   { stroke-dashoffset: 200; opacity: 0.3; }
+  60%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* Route line glow dot at center */
+.route-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan, #13d7ff);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 0 12px rgba(19, 215, 255, 0.7), 0 0 30px rgba(19, 215, 255, 0.3);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.route-dot.active {
+  opacity: 1;
+}
+
+/* ---- Zone Pulsing Glow Rings ---- */
+.world-label {
+  z-index: 4;
+  cursor: pointer;
+  transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+.world-label::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  pointer-events: none;
+  transition: border-color 0.3s ease, opacity 0.3s ease;
+}
+.world-label.penang::before {
+  border-color: rgba(19, 215, 255, 0.5);
+}
+.world-label.johor::before {
+  border-color: rgba(212, 69, 255, 0.5);
+}
+.world-label.kl::before {
+  border-color: rgba(0, 140, 255, 0.5);
+}
+
+/* Pulsing glow animation for WORLD state */
+.world-stage:not(.zoomed) .world-label::before {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}
+.world-stage:not(.zoomed) .world-label.penang::before {
+  animation-delay: 0s;
+}
+.world-stage:not(.zoomed) .world-label.johor::before {
+  animation-delay: 0.4s;
+}
+.world-stage:not(.zoomed) .world-label.kl::before {
+  animation-delay: 0.8s;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.3;
+    box-shadow: 0 0 8px rgba(19, 215, 255, 0.15);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 18px rgba(19, 215, 255, 0.4);
+  }
+}
+.world-stage:not(.zoomed) .world-label.johor::before {
+  animation-name: pulse-glow-johor;
+}
+@keyframes pulse-glow-johor {
+  0%, 100% {
+    opacity: 0.3;
+    box-shadow: 0 0 8px rgba(212, 69, 255, 0.15);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 18px rgba(212, 69, 255, 0.4);
+  }
+}
+.world-stage:not(.zoomed) .world-label.kl::before {
+  animation-name: pulse-glow-kl;
+}
+@keyframes pulse-glow-kl {
+  0%, 100% {
+    opacity: 0.3;
+    box-shadow: 0 0 8px rgba(0, 140, 255, 0.15);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 18px rgba(0, 140, 255, 0.4);
+  }
+}
+
+/* Active/selected zone state */
+.world-label.selected {
+  transform: scale(1.12);
+  background: rgba(8, 26, 60, 0.95);
+  border-color: #fff;
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.25);
+}
+.world-label.selected::before {
+  animation: none !important;
+  opacity: 0;
+}
+
+/* Hover enhancement */
+@media (hover: hover) {
+  .world-stage:not(.zoomed) .world-label:hover {
+    transform: translateY(-4px) scale(1.04);
+  }
+  .world-stage:not(.zoomed) .world-label:hover::before {
+    opacity: 1;
+    box-shadow: 0 0 25px rgba(19, 215, 255, 0.5);
+  }
+}
+
+/* ---- World-Stage Zoom ---- */
+.world-stage {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              overflow 0s 0.7s;
+  will-change: transform;
+}
+.world-stage.zooming,
+.world-stage.zoomed {
+  overflow: hidden !important;
+  border-radius: 0;
+}
+.world-stage.zoomed {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              overflow 0s 0s;
+}
+.world-stage.returning {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              overflow 0s 0.6s;
+}
+
+/* ---- Zoom Backdrop ---- */
+.zoom-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(1, 7, 20, 0.7);
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.zoom-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---- Service Panel ---- */
+.service-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  max-width: 90vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 50;
+  background: linear-gradient(180deg, rgba(8, 22, 52, 0.98), rgba(4, 12, 30, 0.98));
+  border-left: 1px solid rgba(63, 152, 255, 0.3);
+  box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+  transform: translateX(105%);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0s 0.45s;
+  visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.service-panel.open {
+  transform: translateX(0);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0s 0s;
+  visibility: visible;
+}
+
+.service-panel-inner {
+  padding: 48px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.service-panel .panel-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(102, 164, 239, 0.4);
+  background: rgba(10, 32, 68, 0.7);
+  color: #d4e5ff;
+  font-size: 22px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s;
+  line-height: 1;
+}
+.service-panel .panel-close:hover {
+  background: rgba(20, 50, 90, 0.9);
+}
+
+.panel-kicker {
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--cyan, #13d7ff);
+  margin: 0 0 4px;
+}
+.panel-zone-name {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 2px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff, #aac9ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.panel-service-type {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e0ecff;
+  margin: 0 0 16px;
+}
+
+.panel-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(63, 152, 255, 0.5), transparent);
+  margin: 0 0 20px;
+  border: 0;
+}
+
+.panel-description {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #c8d6f0;
+  margin: 0 0 28px;
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.panel-link {
+  align-self: flex-start;
+}
+
+.back-to-world {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #d0ddff;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  touch-action: manipulation;
+}
+.back-to-world:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.back-to-world:focus-visible {
+  outline: 3px solid var(--cyan, #13d7ff);
+  outline-offset: 3px;
+}
+.back-to-world .arrow {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ---- Keyboard hint ---- */
+.panel-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 24px 0 0;
+  text-align: center;
+}
+
+/* ---- Responsive: Tablet (max-width: 1024px) ---- */
+@media (max-width: 1024px) {
+  .service-panel {
+    width: 340px;
+  }
+  .service-panel-inner {
+    padding: 40px 24px 24px;
+  }
+  .panel-zone-name {
+    font-size: 28px;
+  }
+  .panel-service-type {
+    font-size: 16px;
+  }
+}
+
+/* ---- Responsive: Mobile (max-width: 768px) ---- */
+@media (max-width: 768px) {
+  /* Bottom sheet panel */
+  .service-panel {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 75vh;
+    max-height: 75dvh;
+    border-left: none;
+    border-top: 1px solid rgba(63, 152, 255, 0.3);
+    border-radius: 20px 20px 0 0;
+    transform: translateY(105%);
+    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+  }
+  .service-panel.open {
+    transform: translateY(0);
+  }
+
+  .service-panel-inner {
+    padding: 32px 20px 24px;
+  }
+
+  .panel-zone-name {
+    font-size: 24px;
+  }
+  .panel-service-type {
+    font-size: 15px;
+  }
+  .panel-description {
+    font-size: 14px;
+  }
+
+  .back-to-world {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  .panel-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Reduced zoom scale on mobile */
+  .world-stage.zoomed {
+    /* Scale handled in JS for mobile */
+  }
+
+  /* Larger touch targets for zone labels */
+  .world-label {
+    padding: 10px 14px;
+  }
+  .world-label strong {
+    font-size: 12px;
+  }
+  .world-label span {
+    font-size: 11px;
+  }
+  .world-label::before {
+    inset: -10px;
+    border-radius: 14px;
+  }
+}
+
+/* ---- Responsive: Small Mobile (max-width: 430px) ---- */
+@media (max-width: 430px) {
+  .service-panel-inner {
+    padding: 28px 16px 20px;
+  }
+  .panel-zone-name {
+    font-size: 22px;
+  }
+  .panel-service-type {
+    font-size: 14px;
+  }
+  .panel-description {
+    font-size: 13px;
+  }
+}
+
+/* ---- Reduced Motion Fallback ---- */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable zoom — use instant switch */
+  .world-stage {
+    transition: none !important;
+  }
+  .world-stage.zooming,
+  .world-stage.zoomed,
+  .world-stage.returning {
+    transition: none !important;
+  }
+
+  /* Instant panel show/hide */
+  .service-panel {
+    transition: none !important;
+  }
+
+  /* Disable route line animation */
+  .route-line {
+    animation: none !important;
+    transition: none !important;
+  }
+  .route-line.animating,
+  .route-line.drawn {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  /* Disable pulse glow */
+  .world-label::before {
+    animation: none !important;
+  }
+
+  /* Disable hover transforms */
+  .world-label:hover {
+    transform: none !important;
+  }
+
+  /* Instant backdrop */
+  .zoom-backdrop {
+    transition: none !important;
+  }
+}

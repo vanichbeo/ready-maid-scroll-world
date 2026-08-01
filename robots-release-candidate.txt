@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /internal/
+Disallow: /preview/
+Disallow: /staging/
+Disallow: /private/
+Disallow: /thank-you/
+Disallow: /*?preview=
+Disallow: /*?draft=
+Sitemap: https://readymaid.my/sitemap.xml

@@ -81,19 +81,34 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   if(typeof gtag!=='function')return;
   function track(n,p){gtag('event',n,p||{});}
 
-  // WhatsApp click
+  // WhatsApp click — preventDefault + track + delayed navigate
   document.querySelectorAll('a[href*="wa.me"],a[href*="whatsapp"]').forEach(function(e){
-    e.addEventListener('click',function(){track('whatsapp_click',{link_url:e.href});});
+    e.addEventListener('click',function(ev){
+      ev.preventDefault();
+      var url=e.href;
+      track('whatsapp_click',{});
+      setTimeout(function(){window.open(url,'_blank');},300);
+    });
   });
 
-  // Phone click
+  // Phone click — preventDefault + track + delayed navigate
   document.querySelectorAll('a[href^="tel:"]').forEach(function(e){
-    e.addEventListener('click',function(){track('phone_click',{phone_number:e.href.replace('tel:','')});});
+    e.addEventListener('click',function(ev){
+      ev.preventDefault();
+      var url=e.href;
+      track('phone_click',{});
+      setTimeout(function(){location.href=url;},300);
+    });
   });
 
-  // Email click
+  // Email click — preventDefault + track + delayed navigate
   document.querySelectorAll('a[href^="mailto:"]').forEach(function(e){
-    e.addEventListener('click',function(){track('email_click',{email:e.href.replace('mailto:','')});});
+    e.addEventListener('click',function(ev){
+      ev.preventDefault();
+      var url=e.href;
+      track('email_click',{});
+      setTimeout(function(){location.href=url;},300);
+    });
   });
 
   // Prepare enquiry CTA click

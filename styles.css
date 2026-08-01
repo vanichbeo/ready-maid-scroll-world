@@ -83,8 +83,8 @@
   .contact-cta{padding:30px 22px}.contact-cta h2{font-size:26px;max-width:620px}.contact-cta>div>p:not(.eyebrow){font-size:12px}.verified-company{font-size:9px}
   .site-footer{grid-template-columns:1fr 1fr;gap:22px;padding:30px var(--mobile-pad);margin-top:12px}.footer-brand,.copyright{grid-column:1/-1}.copyright{text-align:left}.footer-brand img{width:200px}
   .mobile-sticky-cta{display:grid;grid-template-columns:1fr 1fr;position:fixed;z-index:95;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom));gap:10px;background:rgba(1,8,22,.96);border-top:1px solid rgba(63,152,244,.38);backdrop-filter:blur(12px)}
-  .mobile-sticky-cta a,.mobile-sticky-cta button{height:46px;border-radius:10px;display:grid;place-items:center;font:800 13px/1 inherit}
-  .mobile-sticky-cta a{border:1px solid #3075bd;color:#dcecff;background:#081a38}.mobile-sticky-cta button{border:0;color:#fff;background:linear-gradient(115deg,#087cff,#7a2bea)}.mobile-sticky-cta button:disabled{opacity:.5}
+  .mobile-sticky-cta a{height:46px;border-radius:10px;display:grid;place-items:center;font:800 13px/1 inherit}
+  .mobile-sticky-cta a{border:1px solid #3075bd;color:#dcecff;background:#081a38}.mobile-sticky-cta a:last-child{border:0;color:#fff;background:linear-gradient(115deg,#16c784,#08a95c)}
   .toast{right:14px;left:14px;bottom:82px;text-align:center}
   .legal-page{padding:50px var(--mobile-pad) 100px}.legal-page h1{font-size:34px}
 }
@@ -172,7 +172,7 @@ html,body{max-width:100%;overflow-x:clip}
   .world-label.kl{bottom:10%;left:12%}
   .section-heading p{font-size:11px}
   .section-heading span{font-size:10px}
-  .mobile-sticky-cta a,.mobile-sticky-cta button{font-size:12px}
+  .mobile-sticky-cta a{font-size:12px}
 }
 
 
@@ -239,3 +239,700 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .panel, .trust-strip, .contact-cta { box-shadow:none; border:1px solid #bbb; background:#fff; color:#111; break-inside:avoid; }
   a { color:#111; text-decoration:underline; }
 }
+
+/* V1.6 VERIFIED ASSET INTEGRATION */
+.brand img{height:auto;object-fit:contain}.footer-brand img{height:auto;object-fit:contain}
+.agency-cards .asset-wrap img[src$="license-c.jpg"]{object-fit:contain;background:#f4eee8;padding:4px}
+.agency-cards .asset-wrap img[src$="master-logo.jpg"]{object-fit:contain;background:#020b1d;padding:8px}
+.licence-facts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 10px 10px;padding:9px 11px;border:1px solid rgba(71,142,225,.38);border-radius:10px;background:rgba(4,20,48,.7);font-size:8px;color:#cbd6ea}
+.licence-facts strong{color:#fff}.site-footer address{font-style:normal;font-size:8px;line-height:1.5;color:var(--muted);max-width:250px;margin-top:7px}
+@media(max-width:1279px){.licence-facts{font-size:10px;line-height:1.45}.site-footer address{font-size:10px;max-width:none}}
+@media(max-width:430px){.licence-facts{display:grid;gap:4px;font-size:10px}.site-footer address{font-size:10px}}
+.legal-page{max-width:900px;padding-top:46px;padding-bottom:70px}.legal-page h1{font-size:42px;margin:28px 0 8px}.legal-page h2{font-size:20px;margin:28px 0 8px}.legal-page p{color:#cbd6ea;line-height:1.75;font-size:15px}.legal-page strong{color:#fff}@media(max-width:600px){.legal-page{padding-top:24px}.legal-page h1{font-size:32px}.legal-page p{font-size:14px}}
+.licence-facts a{color:#56cfff;font-weight:800;text-decoration:none}.licence-facts a:hover{text-decoration:underline}
+
+/* V1.7 — approved hero-reference integration. The complete hero is one uncropped master asset. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.hero.hero-reference{display:block;min-height:0;padding-top:0;width:100%;max-width:none;margin:0;position:relative;overflow:hidden;background:#020b1d}
+.hero.hero-reference:before{display:none}
+.hero-reference-picture{display:block;width:100%;line-height:0}
+.hero-reference-picture img{display:block;width:100%;height:auto;object-fit:contain;object-position:center;filter:none;transform:none}
+@media(max-width:768px){
+  .hero.hero-reference{width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .hero.hero-reference::-webkit-scrollbar{display:none}
+  .hero-reference-picture{width:max(100%,920px)}
+  .hero-reference-picture img{width:100%;max-width:none;height:auto}
+}
+@media(max-width:430px){.hero-reference-picture{width:820px}}
+@media print{.hero.hero-reference{display:block!important}.hero-reference-picture{width:100%!important}}
+
+/* V1.9 PPL LAYOUT CORRECTION — asset placement and hierarchy */
+:root{--content-max:1540px}
+.section-shell{width:min(var(--content-max),calc(100% - 48px))}
+.hero.hero-reference{max-width:2048px;margin-inline:auto;border-bottom:1px solid rgba(44,132,229,.18)}
+.hero-reference-picture img{aspect-ratio:8/3}
+
+/* Give approved service assets the visual importance they deserve. */
+.content-grid{grid-template-columns:minmax(0,1.55fr) minmax(340px,.75fr);gap:18px;margin-top:22px;align-items:stretch}
+.services-panel{grid-column:1/-1}
+.process-panel{grid-column:1}
+.duke-panel{grid-column:2}
+.service-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:18px}
+.service-card{grid-template-rows:230px auto;min-height:445px;border:1px solid rgba(95,142,206,.3);border-radius:16px;background:linear-gradient(180deg,#f8fbff,#eef4fb)}
+.service-card img{height:230px;object-fit:cover;filter:none;transform:none}
+.service-card:nth-child(1) img{object-position:center 45%}
+.service-card:nth-child(2) img{object-position:center 48%}
+.service-card:nth-child(3) img{object-position:center 43%}
+.service-card>div{padding:20px 20px 22px}
+.card-kicker{font-size:11px;color:#7046c4}
+.service-card h2{font-size:24px;line-height:1.15;margin:5px 0 10px;color:#122e69}
+.service-card p{font-size:14px;line-height:1.58;margin:0 0 15px;color:#3c4962}
+.service-card a{font-size:13px;color:#006ba7}
+
+.section-heading{min-height:56px;padding:11px 18px}
+.section-heading-rich{align-items:flex-end;gap:20px}
+.section-heading-rich>div{min-width:0}
+.section-heading-rich p{font-size:12px;color:#79cbff;letter-spacing:.09em}
+.section-heading-rich h2{font-size:18px;line-height:1.25;margin:3px 0 0;color:#fff}
+.section-heading-rich>span{font-size:11px;white-space:nowrap;padding-bottom:3px}
+
+.process-list{padding:24px;gap:18px}
+.process-list li>span{width:48px;height:48px;font-size:13px}
+.process-list h2{font-size:16px;line-height:1.25;margin-bottom:8px}
+.process-list p{font-size:12px;line-height:1.55}
+.process-list li:not(:last-child):after{right:-13px;top:20px;font-size:20px}
+
+.duke-panel{grid-template-columns:1fr;gap:0;padding:0}
+.duke-image-wrap{min-height:310px}
+.duke-image-wrap img{border-radius:0;object-position:center 30%;filter:none}
+.duke-copy{padding:22px 24px 26px}
+.mini-title{font-size:25px}
+.duke-panel h2{font-size:20px;line-height:1.25;margin-bottom:10px}
+.duke-panel p:not(.mini-title){font-size:13px;line-height:1.6}
+.duke-topics{gap:7px}
+.duke-topics span{font-size:11px;padding:6px 10px}
+
+.media-row{grid-template-columns:1.15fr .85fr;gap:18px;margin-top:18px}
+.guidance-grid{gap:12px;padding:18px}
+.guidance-grid article{min-height:205px;padding:18px}
+.topic-icon{width:38px;height:38px;font-size:11px}
+.guidance-grid h2{font-size:15px;line-height:1.3;margin:12px 0 8px}
+.guidance-grid p{font-size:12px;line-height:1.55}
+.guidance-takeaway{font-size:11px;line-height:1.45}
+.story-grid{gap:12px;padding:18px}
+.story-grid article{min-height:205px;display:flex;flex-direction:column}
+.story-visual{height:70px;font-size:12px;font-weight:900}
+.story-grid blockquote{font-size:13px;line-height:1.55;margin:16px 16px 10px;flex:1}
+.story-grid article>p{font-size:10px;margin:0 16px 16px}
+
+/* Agency proof is now a full-width visual section instead of four tiny thumbnails. */
+.lower-row{grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.agency-panel{grid-column:1/-1}
+.agency-cards{grid-template-columns:1.35fr 1fr .75fr .9fr;gap:16px;padding:18px}
+.agency-cards figure{display:flex;flex-direction:column;text-align:left;border:1px solid rgba(73,129,200,.3);border-radius:14px;overflow:hidden;background:#071831}
+.asset-wrap{overflow:hidden;background:#020b1d}
+.asset-wrap img{height:220px;border-radius:0;filter:none;transform:none}
+.agency-cards figure:nth-child(1) img{object-fit:cover;object-position:center 46%}
+.agency-cards figure:nth-child(2) img{object-fit:cover;object-position:center 28%}
+.agency-cards figure:nth-child(3) img{object-fit:contain;background:#f3eee7;padding:12px}
+.agency-cards figure:nth-child(4) img{object-fit:contain;background:#020b1d;padding:22px}
+.agency-cards figcaption{font-size:15px;font-weight:800;padding:13px 14px 15px;margin:0}
+.agency-cards small{font-size:11px;line-height:1.45;margin-top:4px;font-weight:500}
+.licence-facts{margin:0 18px 18px;padding:15px 17px;font-size:12px;gap:8px 18px;border-radius:12px}
+
+.social-panel,.contact-cta{min-height:330px}
+.social-grid{gap:12px;padding:18px}
+.social-grid article{min-height:118px;padding:15px}
+.social-grid strong{font-size:15px}
+.social-grid span{font-size:11px;line-height:1.5;margin-top:6px}
+.contact-cta{padding:32px}
+.contact-cta h2{font-size:28px;max-width:560px}
+.contact-cta>div>p:not(.eyebrow){font-size:13px;line-height:1.55;max-width:560px}
+.contact-status,.verified-company{font-size:11px;line-height:1.5}
+
+.site-footer{grid-template-columns:260px repeat(4,1fr) 1.55fr;gap:26px;padding-top:28px}
+.footer-brand img{width:210px}
+.footer-brand p,.site-footer address,.site-footer a,.copyright{font-size:11px;line-height:1.55}
+.site-footer h2{font-size:12px}
+
+@media(max-width:1279px){
+  .section-shell{width:auto;margin-left:24px;margin-right:24px}
+  .hero.hero-reference{margin-left:0;margin-right:0}
+  .hero-reference-picture{width:100%}
+  .hero-reference-picture img{width:100%;height:auto;aspect-ratio:auto}
+  .content-grid{grid-template-columns:1fr;gap:14px}
+  .services-panel,.process-panel,.duke-panel{grid-column:auto}
+  .service-card{grid-template-columns:42% 1fr;grid-template-rows:none;min-height:250px}
+  .service-card img{height:100%;min-height:250px}
+  .duke-panel{grid-template-columns:42% 1fr}
+  .duke-image-wrap{min-height:320px}
+  .media-row,.lower-row{grid-template-columns:1fr;gap:14px}
+  .agency-panel{grid-column:auto}
+  .agency-cards{grid-template-columns:1fr 1fr}
+  .agency-cards figure:nth-child(n) img{height:220px}
+  .social-panel,.contact-cta{min-height:0}
+}
+@media(max-width:767px){
+  .section-shell{margin-left:14px;margin-right:14px}
+  .hero.hero-reference{overflow:hidden}
+  .hero-reference-picture{width:100%}
+  .service-grid{grid-template-columns:1fr;gap:14px;padding:14px}
+  .service-card{grid-template-columns:1fr;grid-template-rows:220px auto;min-height:0}
+  .service-card img{height:220px;min-height:0}
+  .process-list{grid-template-columns:1fr;padding:18px}
+  .process-list li:not(:last-child):after{display:none}
+  .duke-panel{grid-template-columns:1fr}
+  .duke-image-wrap{min-height:360px}
+  .guidance-grid{grid-template-columns:1fr 1fr;padding:14px}
+  .story-grid{grid-template-columns:1fr;padding:14px}
+  .agency-cards{grid-template-columns:1fr;padding:14px}
+  .agency-cards figure:nth-child(n) img{height:auto;max-height:360px}
+  .contact-cta h2{font-size:24px}
+  .section-heading-rich{align-items:flex-start;flex-direction:column;gap:5px}
+  .section-heading-rich>span{white-space:normal}
+}
+@media(max-width:430px){
+  .guidance-grid{grid-template-columns:1fr}
+  .service-card{grid-template-rows:190px auto}
+  .service-card img{height:190px}
+  .duke-image-wrap{min-height:300px}
+  .agency-cards figure:nth-child(n) img{max-height:300px}
+}
+
+
+/* V1.10 PPL SERVICE CARD CORRECTION
+   Service categories are not tied to Penang/Johor/Kuala Lumpur.
+   Photography dominates; compact dark copy panels preserve the locked premium identity. */
+.service-grid{align-items:stretch}
+.service-card{
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:auto minmax(132px,auto);
+  min-height:0;
+  overflow:hidden;
+  border:1px solid rgba(69,154,255,.42);
+  border-radius:17px;
+  background:#06152f;
+  box-shadow:0 16px 34px rgba(0,0,0,.27);
+}
+.service-card img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  object-position:center;
+  filter:none;
+  transform:none;
+}
+.service-card:nth-child(1) img{object-position:center center}
+.service-card:nth-child(2) img{object-position:center center}
+.service-card:nth-child(3) img{object-position:center center}
+.service-card>div{
+  min-height:132px;
+  padding:17px 19px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  background:
+    radial-gradient(circle at 100% 0,rgba(111,47,230,.15),transparent 42%),
+    linear-gradient(145deg,#081b3d,#06152f 68%);
+  border-top:1px solid rgba(75,168,255,.28);
+}
+.service-card h2{
+  margin:0 0 7px;
+  color:#fff;
+  font-size:22px;
+  line-height:1.15;
+}
+.service-card p{
+  margin:0 0 12px;
+  color:#b8c9e4;
+  font-size:13px;
+  line-height:1.48;
+}
+.service-card a{
+  margin-top:auto;
+  color:#42cfff;
+  font-size:12px;
+  font-weight:850;
+}
+.service-card a:hover{color:#a98cff}
+.card-kicker{display:none!important}
+
+@media(max-width:1279px){
+  .service-card{
+    grid-template-columns:minmax(280px,42%) 1fr;
+    grid-template-rows:none;
+  }
+  .service-card img{height:100%;min-height:260px;aspect-ratio:auto;object-fit:cover}
+  .service-card>div{min-height:260px;padding:24px;justify-content:center}
+  .service-card h2{font-size:24px}
+  .service-card p{font-size:14px}
+}
+@media(max-width:767px){
+  .service-card{grid-template-columns:1fr;grid-template-rows:auto minmax(126px,auto)}
+  .service-card img{height:auto;min-height:0;aspect-ratio:4/3;object-fit:cover}
+  .service-card>div{min-height:126px;padding:16px 17px 17px;justify-content:flex-start}
+  .service-card h2{font-size:21px}
+  .service-card p{font-size:12px;margin-bottom:10px}
+}
+
+/* V1.11 MATCHING PROCESS VISUAL INTEGRATION */
+.process-visual-panel{
+  grid-column:1/-1;
+  padding:0;
+  overflow:hidden;
+  background:#020b1d;
+  border:1px solid rgba(57,133,224,.42);
+  min-height:0!important;
+  height:auto!important;
+}
+.matching-process-picture{
+  display:block;
+  width:100%;
+  line-height:0;
+}
+.matching-process-picture img{
+  display:block;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+  background:#020b1d;
+}
+@media(max-width:767px){
+  .process-visual-panel{
+    margin-inline:-2px;
+    border-radius:14px;
+  }
+  .matching-process-picture{
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    scrollbar-width:thin;
+  }
+  .matching-process-picture img{
+    width:980px;
+    max-width:none;
+  }
+}
+
+
+/* V1.12 DUKE showcase integration */
+.duke-showcase{margin-top:14px}
+.duke-showcase-card{margin:0;border-radius:24px;overflow:hidden;border:1px solid rgba(86,172,255,.28);background:linear-gradient(180deg,rgba(7,22,49,.96),rgba(3,11,28,.98));box-shadow:0 20px 48px rgba(0,0,0,.24)}
+.duke-showcase-card img{display:block;width:100%;height:auto}
+@media(max-width:1023px){.duke-showcase-card{border-radius:20px}}
+@media(max-width:767px){.duke-showcase{margin-top:12px}.duke-showcase-card{border-radius:16px}}
+
+/* V1.13 — Agency trust section: original reception + internal candidate review + prominent Licence C */
+.agency-trust-row{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+.agency-trust-panel{overflow:hidden}
+.agency-trust-heading{align-items:flex-start}
+.agency-trust-heading h2{max-width:980px}
+.agency-trust-subtitle{display:block;margin-top:7px;color:var(--muted);font-size:13px;line-height:1.5}
+.agency-trust-grid{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(390px,.82fr);gap:18px;padding:18px;align-items:start}
+.agency-proof-stack{display:grid;grid-template-rows:auto auto;gap:14px;align-content:start;min-width:0}
+.agency-proof-card,.licence-hero-card{margin:0;border:1px solid rgba(69,139,222,.43);border-radius:18px;overflow:hidden;background:linear-gradient(145deg,#071a38,#06142c);box-shadow:0 18px 40px rgba(0,0,0,.22)}
+.agency-proof-card{display:grid;grid-template-rows:auto auto;min-width:0}
+.agency-proof-card img{display:block;width:100%;height:auto;min-height:0;object-fit:cover}
+.reception-proof img{aspect-ratio:16/9;object-position:center 39%}
+.review-proof img{aspect-ratio:16/9;object-position:center center}
+.agency-proof-card figcaption{padding:14px 16px 16px;background:linear-gradient(180deg,rgba(4,17,39,.96),#06152e)}
+.agency-proof-card strong{display:block;color:#fff;font-size:18px;line-height:1.2}
+.agency-proof-card small{display:block;margin-top:5px;color:var(--muted);font-size:12px;line-height:1.45}
+.licence-hero-card{display:flex;flex-direction:column;padding:18px;background:radial-gradient(circle at 50% 5%,rgba(37,114,190,.16),transparent 38%),linear-gradient(155deg,#071b3a,#05142d)}
+.licence-document-link{display:flex;justify-content:center;min-height:0;padding:2px;border-radius:14px;background:#f4f0eb}
+.licence-document-link img{display:block;width:100%;height:auto;max-height:590px;object-fit:contain;border-radius:12px;background:#f4f0eb}
+.licence-hero-copy{display:grid;grid-template-columns:auto 1fr;gap:15px;padding:18px 4px 2px}
+.licence-shield{display:grid;place-items:center;width:52px;height:52px;border:1px solid #1ba3ff;border-radius:13px;color:#58c8ff;font-size:28px;font-weight:900;background:rgba(8,48,89,.72)}
+.licence-hero-copy h3{margin:1px 0 9px;color:#fff;font-size:22px;line-height:1.15}
+.licence-hero-copy strong{display:block;color:#fff;font-size:15px}
+.licence-hero-copy p{margin:5px 0;color:#c6d3e8;font-size:12px;line-height:1.4}
+.licence-hero-copy .licence-code{color:#56cfff;font-weight:900;font-size:14px;letter-spacing:.02em}
+.licence-code span{padding:0 8px;color:#829bd1}
+.licence-button{display:inline-flex;margin-top:11px;text-decoration:none}
+.agency-contact-cta{min-height:0;padding:24px 28px}
+@media(max-width:1000px){
+  .agency-trust-grid{grid-template-columns:1fr}
+  .agency-proof-stack{grid-template-rows:auto}
+  .agency-proof-card img{height:auto;max-height:none}
+  .reception-proof img{aspect-ratio:16/9;object-position:center 39%}
+  .review-proof img{aspect-ratio:16/9;object-position:center center}
+  .licence-document-link img{max-height:720px}
+}
+@media(max-width:640px){
+  .agency-trust-grid{padding:12px;gap:12px}
+  .agency-proof-stack{gap:12px}
+  .agency-proof-card,.licence-hero-card{border-radius:14px}
+  .reception-proof img{aspect-ratio:4/3;object-position:center 36%}
+  .review-proof img{aspect-ratio:16/10;object-position:center center}
+  .agency-proof-card strong{font-size:16px}
+  .agency-proof-card small{font-size:11px}
+  .licence-hero-card{padding:12px}
+  .licence-hero-copy{grid-template-columns:1fr;padding:14px 2px 2px}
+  .licence-shield{width:44px;height:44px;font-size:23px}
+  .licence-hero-copy h3{font-size:19px}
+  .agency-contact-cta{padding:20px 16px}
+}
+
+/* V1.15 — completed-section visual QA: preserve both real office assets and prevent destructive crops */
+.reception-proof img,
+.review-proof img{
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  object-position:center;
+}
+.reception-proof img{object-position:center center}
+.review-proof img{object-position:center center}
+.agency-proof-card{min-height:0}
+.agency-proof-card figcaption{min-height:88px}
+.agency-trust-grid{align-items:stretch}
+.licence-hero-card{height:100%}
+.licence-document-link{flex:1;align-items:flex-start}
+.licence-document-link img{max-height:none}
+@media(max-width:1000px){
+  .agency-trust-grid{grid-template-columns:1fr}
+  .agency-proof-card figcaption{min-height:0}
+  .licence-hero-card{height:auto}
+  .licence-document-link{flex:none}
+  .licence-document-link img{max-height:720px}
+}
+@media(max-width:640px){
+  .reception-proof img,
+  .review-proof img{
+    aspect-ratio:16/9;
+    object-position:center;
+  }
+  .agency-proof-card figcaption{padding:13px 14px 15px}
+  .agency-trust-subtitle{font-size:12px}
+}
+
+
+/* V1.16 — PPL refinement: stronger office crop, cleaner copy hierarchy, controlled licence height */
+.reception-proof img{object-position:center 42%}
+.review-proof img{object-position:center center}
+.agency-trust-grid{align-items:start}
+.licence-hero-card{height:auto}
+.licence-document-link{flex:none;align-items:flex-start}
+.licence-document-link img{width:100%;height:auto;max-height:650px;object-fit:contain}
+@media(min-width:1001px){
+  .licence-hero-card{position:sticky;top:88px}
+}
+@media(max-width:1000px){
+  .licence-hero-card{position:static}
+  .licence-document-link img{max-height:720px}
+}
+@media(max-width:640px){
+  .reception-proof img{object-position:center 40%}
+  .review-proof img{object-position:center center}
+  .licence-document-link img{max-height:none}
+}
+
+/* V1.18 — Complete logo lockup correction */
+.brand,
+.footer-brand{min-width:0;overflow:visible}
+.brand img,
+.footer-brand img{
+  display:block;
+  width:100%;
+  max-width:none;
+  height:auto;
+  object-fit:contain;
+  object-position:left center;
+  background:#020b1d;
+}
+.site-header{grid-template-columns:290px minmax(0,1fr) auto}
+.brand{width:270px;max-width:100%;flex-shrink:0}
+.footer-brand{width:100%}
+.footer-brand img{width:250px;max-width:100%}
+@media(max-width:1400px){
+  .site-header{grid-template-columns:250px minmax(0,1fr) auto}
+  .brand{width:232px}
+}
+@media(max-width:1100px){
+  .site-header{grid-template-columns:220px minmax(0,1fr) auto}
+  .brand{width:205px}
+}
+@media(max-width:767px){
+  .site-header{grid-template-columns:minmax(0,190px) auto auto}
+  .brand{width:185px}
+  .footer-brand img{width:230px}
+}
+@media(max-width:430px){
+  .site-header{grid-template-columns:minmax(0,165px) auto auto}
+  .brand{width:160px}
+  .footer-brand img{width:215px}
+}
+
+
+/* V1.19 — Full homepage visual QA
+   Corrects cascade conflicts introduced by the complete-logo rules and
+   preserves the approved layout across desktop, tablet and mobile. */
+
+/* Keep the complete lockup visible without allowing the header to overflow. */
+.site-header{
+  min-width:0;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  min-width:0;
+}
+.brand img{
+  max-height:70px;
+}
+.desktop-nav{
+  min-width:0;
+}
+.header-actions{
+  min-width:max-content;
+}
+
+/* Large desktop: retain the complete logo while giving navigation enough room. */
+@media (min-width:1280px) and (max-width:1450px){
+  .site-header{
+    grid-template-columns:238px minmax(0,1fr) auto;
+    gap:13px;
+    padding-inline:16px;
+  }
+  .brand{width:224px}
+  .desktop-nav{gap:14px;font-size:11.5px}
+  .header-actions .button{padding-inline:15px;font-size:12px}
+}
+
+/* Tablet/mobile header must use the menu layout. These declarations are placed
+   after V1.18 so the earlier desktop-grid override cannot win in the cascade. */
+@media (max-width:1279px){
+  .site-header{
+    height:68px;
+    grid-template-columns:minmax(0,1fr) auto auto;
+    gap:12px;
+    padding-inline:24px;
+  }
+  .brand{width:210px;max-width:min(52vw,210px)}
+  .brand img{width:100%;max-height:62px}
+  .menu-toggle{display:flex}
+  .desktop-nav{
+    position:fixed;
+    left:0;
+    right:0;
+    top:68px;
+    display:none;
+  }
+  .desktop-nav.open{display:flex}
+  .header-actions .button{display:none}
+}
+
+@media (max-width:767px){
+  .site-header{
+    grid-template-columns:minmax(0,1fr) auto auto;
+    padding-inline:14px;
+    gap:9px;
+  }
+  .brand{width:185px;max-width:54vw}
+  .brand img{max-height:58px}
+  .menu-toggle{width:40px;height:40px}
+}
+
+@media (max-width:430px){
+  .site-header{padding-inline:10px;gap:7px}
+  .brand{width:165px;max-width:52vw}
+  .brand img{max-height:54px}
+}
+
+/* Prevent the complete footer lockup from crowding legal/navigation columns. */
+.footer-brand img{height:auto;object-fit:contain;object-position:left center}
+@media (min-width:1280px){
+  .site-footer{grid-template-columns:minmax(230px,260px) repeat(4,minmax(90px,1fr)) minmax(230px,1.55fr)}
+}
+@media (max-width:1279px){
+  .footer-brand img{width:230px;max-width:100%}
+}
+
+/* Full-page QA refinements: consistent section spacing and safe anchor landing. */
+section[id],div[id]{scroll-margin-top:88px}
+.content-grid,.duke-showcase,.agency-trust-row{scroll-margin-top:88px}
+.agency-contact-cta{align-items:center}
+.agency-contact-cta .button{flex:0 0 auto}
+
+/* Preserve the internal candidate-review story: people and biodata remain
+   visible while the monitor stays supporting evidence. */
+.review-proof img{object-position:center center}
+
+/* Licence image stays readable without forcing an artificial column height. */
+.licence-document-link{overflow:hidden}
+.licence-document-link img{margin-inline:auto}
+
+@media (max-width:640px){
+  .agency-contact-cta{align-items:flex-start}
+  .agency-contact-cta .button{width:100%}
+  section[id],div[id]{scroll-margin-top:76px}
+}
+
+
+/* V1.20 — Social link integration */
+.footer-social{margin-top:18px;display:grid;gap:10px}
+.footer-social h2{margin:0;color:#dce5fa}
+.social-links{display:flex;flex-wrap:wrap;gap:10px}
+.social-link{display:inline-flex;align-items:center;gap:9px;padding:10px 14px;border-radius:999px;border:1px solid rgba(92,148,227,.34);background:linear-gradient(180deg,rgba(7,23,55,.92),rgba(5,17,41,.92));color:#f4f8ff !important;box-shadow:inset 0 0 0 1px rgba(143,190,255,.05)}
+.social-link:hover{border-color:rgba(73,214,255,.62);box-shadow:0 10px 24px rgba(3,17,46,.28);transform:translateY(-1px)}
+.social-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:999px;color:#7fe8ff;background:linear-gradient(135deg,rgba(4,182,255,.18),rgba(124,59,255,.18))}
+.social-icon svg{width:14px;height:14px;display:block}
+.social-link span:last-child{font-size:11px;font-weight:800;letter-spacing:.01em}
+.social-link-whatsapp .social-icon{color:#93ffcc;background:linear-gradient(135deg,rgba(16,185,129,.22),rgba(4,182,255,.15))}
+.social-link-pending{opacity:.94}
+.social-note{margin:0;color:#8fa0bf;font-size:10px;line-height:1.55;max-width:320px}
+@media(max-width:1279px){.social-link{padding:10px 12px}.social-link span:last-child{font-size:12px}.social-note{font-size:11px;max-width:none}}
+@media(max-width:767px){.social-links{gap:8px}.social-link{padding:9px 11px}.social-link span:last-child{font-size:11px}}
+
+
+/* V1.22 — PPL social placement and brand-quality correction */
+.site-header{grid-template-columns:260px minmax(520px,1fr) auto;gap:18px}
+.brand{display:flex;align-items:center;min-width:0;overflow:visible}
+.brand img{width:235px!important;max-width:100%;height:auto;background:transparent;object-fit:contain;object-position:left center}
+.header-actions{gap:14px;white-space:nowrap}
+.header-socials{display:flex;align-items:center;gap:8px;padding-right:12px;margin-right:2px;border-right:1px solid rgba(109,150,214,.28)}
+.header-social{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:#fff;border:1px solid rgba(112,163,232,.33);background:#071a3b;transition:.18s}
+.header-social:hover{transform:translateY(-1px);border-color:#55d8ff;box-shadow:0 8px 20px rgba(0,110,255,.22)}
+.header-social svg{width:18px;height:18px}
+.header-social.facebook{background:linear-gradient(145deg,#1977f3,#0b4bb5)}
+.header-social.instagram{background:radial-gradient(circle at 32% 100%,#ffd36c 0 18%,#ff3158 40%,#9a28cf 66%,#3859df 100%)}
+.header-social.whatsapp{background:linear-gradient(145deg,#27d366,#119c45)}
+.header-social.rednote{font-size:11px;font-weight:900;background:#c92732;border-color:#eb4b55}
+.header-social.disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.3)}
+.mobile-social-links{display:none}
+.floating-whatsapp{position:fixed;right:22px;bottom:24px;z-index:90;display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;border-radius:999px;color:#fff;background:linear-gradient(135deg,#24d366,#119b45);box-shadow:0 14px 38px rgba(16,185,91,.34);font-weight:850;font-size:13px}
+.floating-whatsapp svg{width:25px;height:25px}
+.floating-whatsapp:hover{transform:translateY(-2px);filter:brightness(1.05)}
+.site-footer{grid-template-columns:minmax(240px,1.35fr) repeat(3,minmax(115px,.72fr)) minmax(220px,1.05fr) minmax(110px,.65fr);gap:38px;align-items:start;padding-top:34px}
+.footer-brand img{width:240px!important;max-width:100%;height:auto;background:transparent;object-fit:contain;object-position:left center}
+.footer-connect{display:grid;gap:8px}
+.footer-social-row{display:flex!important;align-items:center;gap:10px;margin:0!important;color:#dce8fa!important;font-size:11px!important}
+.footer-social-row:hover{color:#7fe8ff!important}
+.footer-social-row.disabled{opacity:.5;cursor:not-allowed}
+.footer-social-row small{display:block;font-size:8px;color:#8090ad;font-weight:600}
+.footer-social-icon{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:900;flex:0 0 auto}
+.footer-social-icon.facebook{background:#1877f2}.footer-social-icon.instagram{background:linear-gradient(145deg,#7d34d6,#ff355e,#ffb344)}.footer-social-icon.rednote{background:#d52b37}.footer-social-icon.whatsapp{background:#24c761}
+.copyright{grid-column:1/-1;text-align:center;padding-top:20px;margin-top:6px;border-top:1px solid rgba(90,133,195,.18)}
+@media(max-width:1450px){.site-header{grid-template-columns:230px minmax(460px,1fr) auto}.brand img{width:210px!important}.desktop-nav{gap:20px}.header-social{width:31px;height:31px}.header-socials{gap:6px}.header-actions .button{padding-inline:14px;font-size:12px}}
+@media(max-width:1279px){.site-header{grid-template-columns:1fr auto auto}.brand img{width:205px!important}.header-socials{display:none}.mobile-social-links{display:grid;gap:2px;padding-top:12px;margin-top:10px;border-top:1px solid rgba(115,158,221,.24)}.mobile-social-links a,.mobile-social-links span{padding:10px 4px;color:#c9d8ee;font-size:12px}.mobile-social-links span{opacity:.52}.site-footer{grid-template-columns:1.4fr 1fr 1fr;gap:26px}.footer-brand,.footer-connect,.copyright{grid-column:auto}.copyright{grid-column:1/-1}.floating-whatsapp{bottom:78px}}
+@media(max-width:767px){.brand img{width:188px!important}.site-footer{grid-template-columns:1fr 1fr}.footer-brand,.footer-connect,.copyright{grid-column:1/-1}.footer-brand img{width:220px!important}.floating-whatsapp{right:14px;bottom:78px;padding:11px}.floating-whatsapp span{display:none}}
+@media(max-width:430px){.site-footer{grid-template-columns:1fr}.site-footer>div,.footer-brand,.footer-connect,.copyright{grid-column:1}.footer-social-row{font-size:12px!important}}
+
+
+/* V1.23 — Header enquiry button removed */
+.header-actions{justify-self:end}
+.header-actions .social-divider{display:none}
+@media(min-width:1280px){.site-header{grid-template-columns:minmax(250px,auto) 1fr auto}}
+
+
+/* V1.25 — legal operator clarity */
+.footer-operator{margin:12px 0 4px;color:#dce5fa;font-size:11px;line-height:1.55;max-width:340px}
+.footer-operator strong{color:#fff}
+.footer-licence-line{margin:0 0 8px;color:#73dfff;font-size:10px;line-height:1.5;max-width:340px}
+@media(max-width:1279px){.footer-operator,.footer-licence-line{max-width:none}.footer-operator{font-size:12px}.footer-licence-line{font-size:11px}}
+
+
+/* V1.26 — permanent complete-logo lock.
+   The prior PNG asset was physically cropped; always use the complete master lockup. */
+.brand,.footer-brand{overflow:visible!important}
+.brand img,.footer-brand img{display:block!important;height:auto!important;object-fit:contain!important;object-position:left center!important;max-width:100%!important}
+.brand img{width:245px!important}
+.footer-brand img{width:260px!important}
+@media(max-width:1450px){.brand img{width:225px!important}}
+@media(max-width:1279px){.brand img{width:210px!important}}
+@media(max-width:767px){.brand img{width:195px!important}.footer-brand img{width:230px!important}}
+@media(max-width:430px){.brand img{width:178px!important}.footer-brand img{width:215px!important}}
+
+
+/* V1.27 — structured footer legal information */
+.site-footer{grid-template-columns:minmax(330px,1.6fr) repeat(3,minmax(110px,.68fr)) minmax(230px,1.05fr) minmax(110px,.62fr);gap:32px}
+.footer-legal-block{margin-top:18px;max-width:390px;display:grid;gap:9px}
+.footer-legal-kicker{margin:0!important;color:#2bdcf3!important;font-size:9px!important;font-weight:900;letter-spacing:.15em;line-height:1.2!important}
+.footer-legal-company{margin:0!important;color:#fff!important;font-size:15px!important;font-weight:800;line-height:1.35!important}
+.footer-legal-facts{margin:2px 0 0;display:grid;gap:7px}
+.footer-legal-facts>div{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:baseline}
+.footer-legal-facts dt{color:#8fa0bf;font-size:10px;font-weight:700}
+.footer-legal-facts dd{margin:0;color:#dce5fa;font-size:11px;font-weight:700;line-height:1.4}
+.footer-legal-facts dd{white-space:nowrap}
+.footer-office-block{margin-top:5px;padding-top:11px;border-top:1px solid rgba(90,133,195,.18)}
+.footer-office-block address{margin-top:7px!important;max-width:none!important;font-size:10px!important;line-height:1.55!important;color:#9fb0ca!important}
+@media(max-width:1450px){.site-footer{grid-template-columns:minmax(300px,1.45fr) repeat(3,minmax(105px,.68fr)) minmax(220px,1.05fr) minmax(105px,.62fr);gap:26px}.footer-legal-company{font-size:14px!important}}
+@media(max-width:1279px){.site-footer{grid-template-columns:1.4fr 1fr 1fr}.footer-legal-block{max-width:none}.footer-legal-facts dd{white-space:normal}}
+@media(max-width:767px){.footer-legal-company{font-size:15px!important}.footer-legal-facts>div{grid-template-columns:88px 1fr}.footer-office-block address{font-size:11px!important}}
+@media(max-width:430px){.footer-legal-facts>div{grid-template-columns:1fr;gap:2px}.footer-legal-facts dd{white-space:normal}}
+
+
+/* V1.28 — authoritative consolidated footer */
+.site-footer{display:block!important;padding:34px 0 22px!important;margin-top:14px!important;border-top:1px solid rgba(90,133,195,.28)!important}
+.footer-main-grid{display:grid;grid-template-columns:minmax(330px,1.55fr) minmax(130px,.72fr) minmax(150px,.78fr) minmax(260px,1fr);gap:44px;align-items:start}
+.footer-brand-column,.footer-column,.footer-connect{min-width:0}
+.footer-logo{display:block;width:260px!important;max-width:100%!important;height:auto!important;object-fit:contain!important;object-position:left center!important}
+.footer-column h2,.footer-connect h2{margin:0 0 14px;color:#dce5fa;font-size:12px;letter-spacing:.03em}
+.footer-column a{display:block;color:#abb8d1;font-size:11px;line-height:1.45;margin:0 0 9px}
+.footer-column a:hover{color:var(--cyan)}
+.footer-legal-block{margin-top:16px;max-width:390px;display:grid;gap:8px}
+.footer-legal-kicker{margin:0!important;color:#2bdcf3!important;font-size:9px!important;font-weight:900;letter-spacing:.15em;line-height:1.2!important}
+.footer-legal-company{margin:0!important;color:#fff!important;font-size:14px!important;font-weight:800;line-height:1.35!important}
+.footer-legal-facts{margin:3px 0 0;display:grid;gap:6px}
+.footer-legal-facts>div{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;align-items:baseline}
+.footer-legal-facts dt{color:#8fa0bf;font-size:10px;font-weight:700}
+.footer-legal-facts dd{margin:0;color:#dce5fa;font-size:10.5px;font-weight:700;line-height:1.4;white-space:nowrap}
+.footer-office-block{margin-top:4px;padding-top:10px;border-top:1px solid rgba(90,133,195,.18)}
+.footer-office-block address{margin-top:6px!important;max-width:none!important;font-style:normal;font-size:10px!important;line-height:1.5!important;color:#9fb0ca!important}
+.footer-connect{display:grid;gap:10px}
+.footer-social-row{display:flex!important;align-items:center;gap:11px;margin:0!important;color:#dce8fa!important;font-size:12px!important;line-height:1.3;text-decoration:none}
+.footer-social-row:hover{color:#7fe8ff!important}
+.footer-social-row strong{font-weight:800;color:inherit}
+.footer-social-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:0 0 auto;border:1px solid rgba(255,255,255,.12)}
+.footer-social-icon svg{width:19px;height:19px;display:block}
+.footer-social-icon.facebook{background:linear-gradient(145deg,#1977f3,#0b4bb5)}
+.footer-social-icon.instagram{background:radial-gradient(circle at 32% 100%,#ffd36c 0 18%,#ff3158 40%,#9a28cf 66%,#3859df 100%)}
+.footer-social-icon.whatsapp{background:linear-gradient(145deg,#27d366,#119c45)}
+.footer-bottom-row{display:flex;justify-content:space-between;align-items:center;gap:22px;margin-top:26px;padding-top:18px;border-top:1px solid rgba(90,133,195,.18);color:#8e9bb6;font-size:10px;line-height:1.5}
+.footer-bottom-row p{margin:0}
+.footer-bottom-row div{display:flex;gap:20px}
+.footer-bottom-row a{color:#9fb0ca;font-size:10px;margin:0}
+.footer-bottom-row a:hover{color:var(--cyan)}
+@media(max-width:1279px){.footer-main-grid{grid-template-columns:minmax(300px,1.35fr) 1fr 1fr;gap:30px}.footer-connect{grid-column:2/4}.footer-legal-facts dd{white-space:normal}}
+@media(max-width:767px){.footer-main-grid{grid-template-columns:1fr 1fr;gap:26px 22px}.footer-brand-column,.footer-connect{grid-column:1/-1}.footer-logo{width:230px!important}.footer-bottom-row{align-items:flex-start;flex-direction:column;gap:10px}.footer-bottom-row div{gap:16px}}
+@media(max-width:430px){.footer-main-grid{grid-template-columns:1fr}.footer-brand-column,.footer-connect{grid-column:1}.footer-legal-facts>div{grid-template-columns:1fr;gap:2px}.footer-legal-facts dd{white-space:normal}.footer-bottom-row div{flex-wrap:wrap}}
+
+
+/* V1.29 — DUKE Facebook page CTA */
+/* V1.30 — Preserve the original DUKE CTA position and gradient treatment.
+   This overlay fully covers the button baked into the approved DUKE image,
+   changes only its wording/icon/destination, and does not alter DUKE's face or artwork. */
+/* V1.31 — Approved DUKE image with one invisible clickable area over its baked-in CTA. */
+/* V1.35 — Replace the baked-in DUKE CTA with the approved button asset only. */
+
+/* V1.36 — approved DUKE asset with one invisible Facebook hotspot */
+.duke-showcase-card{position:relative}
+.duke-image-cta-link{
+  position:absolute;
+  left:8.8%;
+  bottom:3.0%;
+  width:27.6%;
+  height:8.4%;
+  z-index:5;
+  border-radius:999px;
+  background:transparent;
+  display:block;
+  transform:none;
+  box-shadow:none;
+  outline-offset:4px;
+}
+.duke-image-cta-link:hover,
+.duke-image-cta-link:active{transform:none;filter:none;box-shadow:none}
+.duke-image-cta-link:focus-visible{outline:3px solid #fff}
+@media(max-width:767px){
+  .duke-image-cta-link{left:8.8%;bottom:3.0%;width:27.6%;height:8.4%}
+}
+
+
+/* V1.38 — RedNote icon-only correction. No other footer/header layout changes. */
+.header-social.rednote{overflow:hidden;white-space:nowrap;line-height:1;font-size:0}
+.header-social.rednote>span{display:block;white-space:nowrap;font-size:8px;font-weight:900;line-height:1;letter-spacing:-.06em;transform:translateY(.2px)}
+.footer-social-icon.rednote{background:#e72f3f;overflow:hidden;white-space:nowrap;font-size:0;line-height:1}
+.footer-social-icon.rednote>span{display:block;white-space:nowrap;font-size:9px;font-weight:900;line-height:1;letter-spacing:-.08em;transform:translateY(.2px)}

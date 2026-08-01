@@ -75,3 +75,70 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 
+
+// GA4 EVENT TRACKING — Ready Maid Agency (G-8UEJ9M4TG3)
+(function(){
+  if(typeof gtag!=='function')return;
+  function track(n,p){gtag('event',n,p||{});}
+
+  // WhatsApp click
+  document.querySelectorAll('a[href*="wa.me"],a[href*="whatsapp"]').forEach(function(e){
+    e.addEventListener('click',function(){track('whatsapp_click',{link_url:e.href});});
+  });
+
+  // Phone click
+  document.querySelectorAll('a[href^="tel:"]').forEach(function(e){
+    e.addEventListener('click',function(){track('phone_click',{phone_number:e.href.replace('tel:','')});});
+  });
+
+  // Email click
+  document.querySelectorAll('a[href^="mailto:"]').forEach(function(e){
+    e.addEventListener('click',function(){track('email_click',{email:e.href.replace('mailto:','')});});
+  });
+
+  // Prepare enquiry CTA click
+  document.querySelectorAll('.button-primary,[class*="cta"],[class*="enquiry"]').forEach(function(e){
+    e.addEventListener('click',function(){track('prepare_enquiry_click',{button_text:e.textContent.trim()});});
+  });
+
+  // Form start (focus on any form field)
+  document.querySelectorAll('form input,form textarea,form select').forEach(function(e){
+    e.addEventListener('focus',function(){
+      var f=e.closest('form');
+      track('form_start',{form_id:f?f.id:'unknown'});
+    },{once:true});
+  });
+
+  // Form submit (only after genuine submission)
+  document.querySelectorAll('form').forEach(function(f){
+    f.addEventListener('submit',function(){
+      if(f.checkValidity()){track('form_submit',{form_id:f.id||'unknown'});}
+    });
+  });
+
+  // Service view (scroll-based)
+  if('IntersectionObserver' in window){
+    var sObs=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          track('service_view',{service:e.target.id||e.target.dataset.service||'unknown'});
+          sObs.unobserve(e.target);
+        }
+      });
+    },{threshold:0.5});
+    document.querySelectorAll('[data-service],.service-card,[id*="service"]').forEach(function(e){sObs.observe(e);});
+  }
+
+  // Map direction click
+  document.querySelectorAll('a[href*="maps.google"],a[href*="google.com/maps"],[data-action="directions"]').forEach(function(e){
+    e.addEventListener('click',function(){track('map_direction_click',{destination:'readymaid.my office'});});
+  });
+
+  // PWA install app click
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();window._deferredPrompt=e;
+    document.querySelectorAll('[data-action="install-app"],.install-btn').forEach(function(el){
+      el.addEventListener('click',function(){track('install_app_click',{});window._deferredPrompt.prompt();});
+    });
+  });
+})();

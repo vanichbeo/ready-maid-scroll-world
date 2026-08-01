@@ -32,5 +32,21 @@
       ]
     }
   ],
-  "redirects": []
+  "redirects": [
+    {
+      "source": "/about/",
+      "destination": "/about-ready-maid/",
+      "permanent": true
+    },
+    {
+      "source": "/contact/",
+      "destination": "/contact-ready-maid/",
+      "permanent": true
+    },
+    {
+      "source": "/services/",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
 }

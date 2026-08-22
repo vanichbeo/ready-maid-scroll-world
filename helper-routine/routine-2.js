@@ -105,12 +105,13 @@ async function directDownloadPDF(){
     ctx.strokeStyle='#edf2f8';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(65,215);ctx.lineTo(1175,215);ctx.stroke();
 
+    // Top left summary
     roundRect(65,245,520,282,24,'#f9fbfe','#dce6f2');
     ctx.fillStyle='#0a2d66';ctx.font='700 58px Arial';
     ctx.fillText('Daily Routine',95,327);
     ctx.fillStyle='#0b78d4';ctx.fillText('Overview',95,392);
-    ctx.fillStyle='#66788f';ctx.font='20px Arial';
-    wrap('This visual version is easier to share with the helper. The same timetable content is shown in a cleaner poster style.',95,431,440,27,2);
+    ctx.fillStyle='#66788f';ctx.font='19px Arial';
+    wrap('This visual version is easier to share with the helper. The same timetable content is shown in a cleaner poster style.',95,423,440,24,2);
 
     roundRect(95,488,210,34,10,'#f7f9fd','#e4ebf4');
     roundRect(320,488,210,34,10,'#f7f9fd','#e4ebf4');
@@ -120,6 +121,7 @@ async function directDownloadPDF(){
     ctx.fillText(state.meta.family||'—',110,514);
     ctx.fillText(state.meta.helper||'—',335,514);
 
+    // Template visual block
     roundRect(610,245,565,282,24,'#eef7ff','#dce6f2');
     var art=getTemplateArt(currentTemplate);
     ctx.textAlign='center';
@@ -129,6 +131,7 @@ async function directDownloadPDF(){
     wrap(art.sub,892,452,350,27,3);
     ctx.textAlign='left';
 
+    // Four routine blocks
     var positions=[[65,555],[630,555],[65,930],[630,930]];
     var cardW=545,cardH=350;
     sectionNames.forEach(function(sec,idx){
@@ -157,6 +160,7 @@ async function directDownloadPDF(){
       });
     });
 
+    // Most important
     var band=ctx.createLinearGradient(65,1300,1175,1300);
     band.addColorStop(0,'#0a2d66');band.addColorStop(.55,'#0b78d4');band.addColorStop(1,'#7446d8');
     roundRect(65,1300,1110,105,18,band,null);
@@ -164,6 +168,7 @@ async function directDownloadPDF(){
     ctx.font='20px Arial';
     ctx.fillText('Build the habit first, then slowly reduce reminders. Keep the routine clear, simple and consistent.',85,1377);
 
+    // Special notes
     roundRect(65,1425,1110,175,18,'#fff','#dce6f2');
     ctx.fillStyle='#193862';ctx.font='700 24px Arial';
     ctx.fillText('Special Notes / 特别备注',85,1465);
@@ -173,6 +178,7 @@ async function directDownloadPDF(){
     ctx.fillText('Ready Maid Agency · Chat with us on WhatsApp',1170,1645);
     ctx.textAlign='left';
 
+    // Create one-page PDF with the rendered A4 image.
     var jpgData=canvas.toDataURL('image/jpeg',0.94).split(',')[1];
     var bin=atob(jpgData),jpg=new Uint8Array(bin.length);
     for(var k=0;k<bin.length;k++) jpg[k]=bin.charCodeAt(k);

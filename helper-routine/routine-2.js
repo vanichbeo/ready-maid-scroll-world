@@ -154,8 +154,6 @@ async function directDownloadPDF(){
           ctx.fillStyle='#66788f';ctx.font='18px Arial';
           wrap(r.notes,x+150,yy+29,340,22,1);
         }
-        ctx.strokeStyle='#edf2f8';ctx.lineWidth=2;
-        ctx.beginPath();ctx.moveTo(x+22,yy+51);ctx.lineTo(x+cardW-22,yy+51);ctx.stroke();
         yy+=60;
       });
     });

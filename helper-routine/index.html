@@ -4,17 +4,193 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ready Maid Routine Planner V13</title>
-<style>
-:root{--navy:#0a2d66;--blue:#0b78d4;--cyan:#12b7e7;--purple:#7446d8;--ink:#193862;--muted:#66788f;--line:#dce6f2;--soft:#f4f8fd;--bg:#edf3fb;--white:#fff;--shadow:0 14px 36px rgba(10,45,102,.10)}*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}button,input,textarea,select{font:inherit}body{min-height:100vh}.header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand{display:flex;align-items:center;gap:12px}.logo{width:190px;height:70px;display:block;object-fit:contain;object-position:left center;border-radius:0;background:none}.header-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}.btn.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff}.btn.secondary{background:#fff;border:1px solid var(--line);color:var(--navy)}.shell{max-width:1550px;margin:auto;padding:16px}.hero{background:#fff;border:1px solid var(--line);border-radius:24px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}.hero h1{margin:0;color:var(--navy);font-size:42px;line-height:1.02}.hero p{margin:10px 0 0;color:var(--muted);font-size:16px;line-height:1.55;max-width:920px}.workspace{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:start}.panel{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.panel-title{font-size:18px;font-weight:900;color:var(--navy)}.panel-sub{font-size:12px;color:var(--muted);margin-top:3px}.panel-body{padding:16px}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:11px;font-weight:900;color:var(--navy);margin:0 0 6px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 11px;outline:none;background:#fff;color:var(--ink)}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue)}.section{border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}.section-head{padding:10px 12px;background:linear-gradient(90deg,rgba(11,120,212,.08),rgba(116,70,216,.10));display:flex;justify-content:space-between;align-items:center;gap:10px}.section-head strong{color:var(--navy)}.small-btn{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:10px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer}.task-row{display:grid;grid-template-columns:140px 1fr 1fr 38px;gap:8px;padding:8px}.task-row:hover{background:var(--soft)}.task-row input{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;outline:none}.delete-btn{border:1px solid #f1d5dd;background:#fff;color:#b24760;border-radius:10px;font-weight:900;cursor:pointer}#notesInput{min-height:170px;resize:vertical;line-height:1.5}.helper-note{margin-top:13px;padding:12px;background:var(--soft);border-radius:14px;font-size:12px;line-height:1.55;color:var(--muted)}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.preview-wrap{padding:14px;position:sticky;top:84px}.zoom-box{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);font-weight:800}.zoom-box select{width:auto;padding:8px 10px;border:1px solid var(--line);border-radius:10px}.preview-scroll{background:#edf3fb;border-radius:18px;padding:14px;overflow:auto;max-height:calc(100vh - 180px)}.preview-stack{display:flex;flex-direction:column;gap:18px;transform-origin:top center;min-width:max-content;padding:6px}.page{width:210mm;min-height:297mm;background:#fff;border:1px solid #d3dfed;border-radius:8px;box-shadow:0 16px 48px rgba(10,45,102,.14);padding:11mm;margin:auto;position:relative;overflow:hidden}.p-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:8px;border-bottom:2px solid #edf2f8}.p-brand{display:flex;gap:10px;align-items:center}.p-logo{width:165px;height:78px;display:block;object-fit:contain;object-position:left center;border-radius:0;background:none}.p-badge{font-size:10px;font-weight:800;color:var(--navy);border:1px solid #cfdbeb;border-radius:10px;padding:7px 10px}.poster-hero{display:grid;grid-template-columns:1.05fr .95fr;gap:12px;align-items:stretch;margin-top:10px}.poster-copy{background:linear-gradient(135deg,#f5f9fe,#fff);border:1px solid var(--line);border-radius:16px;padding:16px}.poster-copy h3{margin:0;font-size:34px;line-height:1.02;color:var(--navy)}.poster-copy h3 span{color:var(--blue)}.poster-copy p{margin:12px 0 0;font-size:13px;line-height:1.55;color:var(--muted)}.poster-photo{border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:190px;background:linear-gradient(135deg,#e8f4fd,#f4efff);display:flex;align-items:center;justify-content:center;position:relative}.template-art{width:100%;height:100%;padding:14px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}.template-art .emoji{font-size:68px;line-height:1}.template-art .title{margin-top:10px;font-size:20px;font-weight:900;color:var(--navy)}.template-art .sub{margin-top:5px;font-size:12px;font-weight:700;color:var(--muted);max-width:240px;line-height:1.45}.template-art.childcare{background:linear-gradient(135deg,#e8f8ff,#f4eeff)}.template-art.elderly{background:linear-gradient(135deg,#eef7ff,#f6efff)}.template-art.housework{background:linear-gradient(135deg,#eef8fb,#f3efff)}.info-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.info-card{background:#f7f9fd;border-radius:10px;padding:8px;border:1px solid #e4ebf4}.info-card b{display:block;font-size:9px;color:var(--muted);margin-bottom:4px}.info-card span{font-size:12px;font-weight:700}.poster-sections{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.poster-card{border:1px solid var(--line);border-radius:14px;overflow:hidden}.poster-card .head{padding:9px 10px;background:linear-gradient(90deg,rgba(11,120,212,.10),rgba(116,70,216,.12));font-size:14px;font-weight:900;color:var(--navy)}.poster-card .body{padding:10px}.poster-item{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:10px 0;min-height:48px;align-items:center;border-bottom:1px solid #edf2f8}.poster-item:last-child{border-bottom:0}.poster-time{font-weight:900;color:var(--blue);font-size:12px}.poster-task{font-size:12px;font-weight:700;line-height:1.35}.poster-notes{font-size:10px;color:var(--muted);margin-top:2px}.poster-tip{margin-top:10px;background:linear-gradient(135deg,var(--navy),var(--blue),var(--purple));color:#fff;border-radius:14px;padding:12px 14px}.poster-tip b{display:block;font-size:13px;margin-bottom:4px}.poster-tip div{font-size:11px;line-height:1.45}.special-box{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12px;min-height:110px}.special-box b{display:block;margin-bottom:6px}.special-box div{white-space:pre-wrap;line-height:1.5}.poster-footnote{margin-top:10px;font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}.footer-band{position:absolute;left:11mm;right:11mm;bottom:11mm;background:linear-gradient(90deg,var(--navy),var(--blue),var(--purple));color:#fff;border-radius:12px;padding:11px;text-align:center;font-size:11px;font-weight:800}.status-text{font-size:12px;font-weight:800;color:#24814f}@media(max-width:1200px){.workspace{grid-template-columns:1fr}.preview-wrap{position:static}.preview-scroll{max-height:none}}@media(max-width:640px){.header{padding:10px 12px;align-items:flex-start}.shell{padding:10px}.hero h1{font-size:32px}.meta-grid{grid-template-columns:1fr}.task-row{grid-template-columns:75px 1fr 36px}.task-row .notes-input{grid-column:2/3}.header-actions .secondary{display:none}.logo{width:150px;height:58px}}
-</style>
+<link rel="stylesheet" href="routine.css?v=20260822-2235">
 </head>
 <body>
-<header class="header"><div class="brand"><img class="logo" src="/helper-routine/master-logo.jpg?v=20260822-2145" alt="Ready Maid Agency"></div><div class="header-actions"><button class="btn secondary" id="resetBtn">Reset</button><button class="btn primary" id="downloadBothTop">Download PDF</button></div></header>
-<main class="shell"><section class="hero"><h1>Single-page customer routine planner</h1><p>Customer fills in the routine and downloads one clean visual Ready Maid routine page.</p></section><section class="workspace"><div class="panel editor-panel"><div class="panel-head"><div><div class="panel-title">Routine Builder</div><div class="panel-sub">Choose a template, then adjust the timetable. The poster visual is fixed automatically by the selected template.</div></div><div class="controls"><button class="small-btn" data-plan="weekday">Weekday</button><button class="small-btn" data-plan="weekend">Weekend</button></div></div><div class="panel-body"><div class="meta-grid"><div class="field"><label>Family / Customer Name</label><input id="familyInput" placeholder="Optional"></div><div class="field"><label>Helper Name</label><input id="helperInput" placeholder="Optional"></div></div><div class="meta-grid" style="margin-top:10px"><div class="field"><label>Quick Template</label><select id="templateSelect"><option value="childcare">Baby / Childcare</option><option value="elderly">Elderly Care</option><option value="housework" selected>Housework & Cooking</option></select></div></div><div id="sectionRoot"></div><div class="field" style="margin-top:12px"><label>Special Notes</label><textarea id="notesInput" rows="8" placeholder="Baby nap time, medication reminder, food preference, key rules..."></textarea></div><div class="helper-note"><b>Owner tip:</b> keep roughly the same routine for 1–2 weeks. Once the helper remembers the flow, slowly reduce reminders.</div></div></div><div class="panel preview-panel"><div class="panel-head"><div><div class="panel-title">Preview</div><div class="panel-sub">The final result is one visual A4 routine page.</div></div><div class="controls"><div class="zoom-box"><span>Zoom</span><select id="zoomSelect"><option value="0.75">75%</option><option value="0.9" selected>90%</option><option value="1">100%</option><option value="1.1">110%</option></select></div></div></div><div class="preview-wrap"><div class="preview-scroll"><div class="preview-stack" id="previewStack"><div class="page poster-page" id="posterPage"><div class="p-header"><div class="p-brand"><img class="p-logo" src="/helper-routine/master-logo.jpg?v=20260822-2145" alt="Ready Maid Agency"></div><div class="p-badge">Licence C · JTKSM</div></div><div class="poster-hero"><div class="poster-copy"><h3>Daily Routine <span>Overview</span></h3><p>This visual version is easier to share with the helper. The same timetable content is shown in a cleaner poster style with a photo area and grouped routine blocks.</p><div class="info-row"><div class="info-card"><b>FAMILY</b><span id="posterFamily">—</span></div><div class="info-card"><b>HELPER</b><span id="posterHelper">—</span></div></div></div><div class="poster-photo" id="posterPhotoBox"></div></div><div class="poster-sections" id="posterSections"></div><div class="poster-tip"><b>Most important</b><div>Build the habit first, then slowly reduce reminders. Keep the routine clear, simple and consistent.</div></div><div class="special-box"><b>Special Notes / 特别备注</b><div id="posterNotes">—</div></div><div class="poster-footnote"><span></span><span>Ready Maid Agency · Chat with us on WhatsApp</span></div><div class="footer-band">Ready Maid Agency · We Match, You Relax. · Established 2001 · JTKSM Licensed Agency</div></div></div></div><div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap"><button class="btn primary" id="downloadPdfBtn" style="min-width:240px">Download PDF</button><span class="status-text" id="saveState">Ready</span></div></div></div></section></main>
-<script>
-(function(){"use strict";var currentPlan="weekday",currentTemplate="housework";var sectionNames=["Morning","Late Morning","Afternoon","Evening"],sectionCN={Morning:"早上","Late Morning":"上午",Afternoon:"下午",Evening:"晚上"};function fillRows(r){while(r.length<6)r.push({time:"",task:"",notes:""});return r}var templateData={childcare:{Morning:fillRows([{time:"6:30 AM",task:"Prepare milk / breakfast",notes:"Baby / child first"},{time:"7:30 AM",task:"Wash bottles / dishes",notes:""},{time:"8:00 AM",task:"Baby care / bathe child",notes:""}]),"Late Morning":fillRows([{time:"9:30 AM",task:"Baby nap / tidy room",notes:""},{time:"10:30 AM",task:"Laundry for baby clothes",notes:""}]),Afternoon:fillRows([{time:"1:00 PM",task:"Prepare lunch",notes:""},{time:"2:00 PM",task:"Child activity / watch child",notes:""}]),Evening:fillRows([{time:"5:30 PM",task:"Prepare dinner",notes:""},{time:"7:00 PM",task:"Wash dishes",notes:""},{time:"8:00 PM",task:"Prepare for tomorrow",notes:""}])},elderly:{Morning:fillRows([{time:"6:30 AM",task:"Prepare breakfast / medicine",notes:"Check medicine"},{time:"8:00 AM",task:"Help elderly wash up",notes:""},{time:"9:00 AM",task:"Tidy bedroom",notes:""}]),"Late Morning":fillRows([{time:"10:00 AM",task:"Companionship / light exercise",notes:""},{time:"11:00 AM",task:"Laundry",notes:""}]),Afternoon:fillRows([{time:"1:00 PM",task:"Prepare lunch",notes:"Soft food if needed"},{time:"3:00 PM",task:"Tea / snacks / comfort check",notes:""}]),Evening:fillRows([{time:"5:30 PM",task:"Prepare dinner",notes:""},{time:"7:30 PM",task:"Evening medicine",notes:"If needed"},{time:"8:00 PM",task:"Prepare for sleep",notes:""}])},housework:{Morning:fillRows([{time:"7:00 AM",task:"Prepare breakfast",notes:""},{time:"8:00 AM",task:"Wash dishes",notes:""},{time:"8:30 AM",task:"Laundry",notes:""}]),"Late Morning":fillRows([{time:"9:30 AM",task:"Tidy bedrooms",notes:""},{time:"10:30 AM",task:"Clean living room",notes:""},{time:"11:00 AM",task:"Hang clothes",notes:""}]),Afternoon:fillRows([{time:"1:00 PM",task:"Prepare lunch",notes:""},{time:"2:00 PM",task:"Clean kitchen",notes:""},{time:"3:00 PM",task:"Fold / iron clothes",notes:""}]),Evening:fillRows([{time:"5:30 PM",task:"Prepare dinner",notes:""},{time:"7:00 PM",task:"Wash dishes",notes:""},{time:"7:30 PM",task:"Take out rubbish",notes:""}])}};function blankPlan(){return {Morning:fillRows([]),"Late Morning":fillRows([]),Afternoon:fillRows([]),Evening:fillRows([])}}function defaultState(){return {currentTemplate:"housework",meta:{family:"",helper:"",notes:""},plans:{weekday:JSON.parse(JSON.stringify(templateData.housework)),weekend:blankPlan()}}}var state=defaultState();function save(){state.currentTemplate=currentTemplate;try{localStorage.setItem("readymaid_routine_planner_v13",JSON.stringify(state));document.getElementById("saveState").textContent="Saved"}catch(e){}}function load(){try{var raw=localStorage.getItem("readymaid_routine_planner_v13");if(raw)state=JSON.parse(raw)}catch(e){}currentTemplate=state.currentTemplate||"housework"}function clone(x){return JSON.parse(JSON.stringify(x))}function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]})}function getTemplateArt(k){var m={childcare:{cls:"childcare",emoji:"🍼",title:"Baby / Childcare",sub:"Fixed visual for families who mainly need newborn, baby or child support."},elderly:{cls:"elderly",emoji:"👵",title:"Elderly Care",sub:"Fixed visual for companionship, daily support and elderly-care routines."},housework:{cls:"housework",emoji:"🧹",title:"Housework & Cooking",sub:"Fixed visual for cleaning, organising and daily cooking routines."}};return m[k]||m.housework}function renderEditor(){familyInput.value=state.meta.family||"";helperInput.value=state.meta.helper||"";notesInput.value=state.meta.notes||"";templateSelect.value=currentTemplate;var h="";sectionNames.forEach(function(sec){h+='<div class="section"><div class="section-head"><strong>'+sectionCN[sec]+' · '+sec+'</strong><button class="small-btn add-btn" data-sec="'+sec+'">+ Add task</button></div>';state.plans[currentPlan][sec].forEach(function(r,i){h+='<div class="task-row"><input class="time-input" data-sec="'+sec+'" data-i="'+i+'" placeholder="Time" value="'+esc(r.time)+'"><input class="task-input" data-sec="'+sec+'" data-i="'+i+'" placeholder="Task" value="'+esc(r.task)+'"><input class="notes-input" data-sec="'+sec+'" data-i="'+i+'" placeholder="Notes (optional)" value="'+esc(r.notes)+'"><button class="delete-btn del-btn" data-sec="'+sec+'" data-i="'+i+'">×</button></div>'});h+='</div>'});sectionRoot.innerHTML=h;document.querySelectorAll('.add-btn').forEach(function(b){b.onclick=function(){state.plans[currentPlan][b.dataset.sec].push({time:"",task:"",notes:""});save();renderEditor()}});document.querySelectorAll('.del-btn').forEach(function(b){b.onclick=function(){state.plans[currentPlan][b.dataset.sec].splice(+b.dataset.i,1);save();renderEditor()}});[[".time-input","time"],[".task-input","task"],[".notes-input","notes"]].forEach(function(p){document.querySelectorAll(p[0]).forEach(function(i){i.oninput=function(){state.plans[currentPlan][i.dataset.sec][+i.dataset.i][p[1]]=i.value;save();renderPreview()}})});renderPreview()}function renderPreview(){posterFamily.textContent=state.meta.family||"—";posterHelper.textContent=state.meta.helper||"—";posterNotes.textContent=state.meta.notes||"—";var o="";sectionNames.forEach(function(sec){var rows=state.plans[currentPlan][sec].filter(function(r){return r.time||r.task||r.notes});o+='<div class="poster-card"><div class="head">'+sectionCN[sec]+' · '+sec+'</div><div class="body">';rows.forEach(function(r){o+='<div class="poster-item"><div class="poster-time">'+esc(r.time||"—")+'</div><div><div class="poster-task">'+esc(r.task||"—")+'</div>'+(r.notes?'<div class="poster-notes">'+esc(r.notes)+'</div>':'')+'</div></div>'});o+='</div></div>'});posterSections.innerHTML=o;var a=getTemplateArt(currentTemplate);posterPhotoBox.innerHTML='<div class="template-art '+a.cls+'"><div class="emoji">'+a.emoji+'</div><div class="title">'+a.title+'</div><div class="sub">'+a.sub+'</div></div>'}function bindMeta(id,key){document.getElementById(id).oninput=function(){state.meta[key]=this.value;save();renderPreview()}}
-function asciiBytes(str){var a=new Uint8Array(str.length);for(var i=0;i<str.length;i++)a[i]=str.charCodeAt(i)&255;return a}function concatBytes(parts){var n=0;parts.forEach(function(p){n+=p.length});var out=new Uint8Array(n),o=0;parts.forEach(function(p){out.set(p,o);o+=p.length});return out}function jpegPdfBytes(jpg,w,h){var c=[],off=[0],size=0;function push(x){if(typeof x==='string')x=asciiBytes(x);c.push(x);size+=x.length}function obj(n,b){off[n]=size;push(n+' 0 obj\n');b.forEach(push);push('\nendobj\n')}push('%PDF-1.4\n%ÿÿÿÿ\n');obj(1,['<< /Type /Catalog /Pages 2 0 R >>']);obj(2,['<< /Type /Pages /Kids [3 0 R] /Count 1 >>']);obj(3,['<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>']);off[4]=size;push('4 0 obj\n<< /Type /XObject /Subtype /Image /Width '+w+' /Height '+h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpg.length+' >>\nstream\n');push(jpg);push('\nendstream\nendobj\n');var content='q\n595.28 0 0 841.89 0 0 cm\n/Im0 Do\nQ\n';obj(5,['<< /Length '+content.length+' >>\nstream\n'+content+'endstream']);var x=size;push('xref\n0 6\n0000000000 65535 f \n');for(var i=1;i<=5;i++)push(String(off[i]).padStart(10,'0')+' 00000 n \n');push('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+x+'\n%%EOF');return concatBytes(c)}function wrapText(ctx,text,x,y,maxWidth,lineHeight,maxLines){var words=String(text||'').split(/\s+/),line='',lines=[];for(var i=0;i<words.length;i++){var test=line?line+' '+words[i]:words[i];if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=words[i]}else line=test}if(line)lines.push(line);if(maxLines)lines=lines.slice(0,maxLines);lines.forEach(function(l,idx){ctx.fillText(l,x,y+idx*lineHeight)});return y+lines.length*lineHeight}function roundedRect(ctx,x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}async function loadImage(src){return new Promise(function(res,rej){var im=new Image();im.onload=function(){res(im)};im.onerror=rej;im.src=src})}async function downloadPDF(){var st=document.getElementById('saveState');try{st.textContent='Creating PDF…';var W=1240,H=1754,cv=document.createElement('canvas');cv.width=W;cv.height=H;var ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);var logo=await loadImage('/helper-routine/master-logo.jpg?v=20260822-2145');ctx.drawImage(logo,65,55,360,170);roundedRect(ctx,925,58,245,54,18,'#fff','#cfdbeb');ctx.fillStyle='#0a2d66';ctx.font='700 24px Arial';ctx.fillText('Licence C · JTKSM',958,93);ctx.strokeStyle='#edf2f8';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(65,245);ctx.lineTo(1175,245);ctx.stroke();roundedRect(ctx,65,275,520,280,24,'#f9fbfe','#dce6f2');ctx.fillStyle='#0a2d66';ctx.font='700 58px Arial';ctx.fillText('Daily Routine',95,355);ctx.fillStyle='#0b78d4';ctx.fillText('Overview',95,420);ctx.fillStyle='#66788f';ctx.font='26px Arial';wrapText(ctx,'This visual version is easier to share with the helper. The same timetable content is shown in a cleaner poster style.',95,475,440,36,3);roundedRect(ctx,95,530,210,74,14,'#f7f9fd','#e4ebf4');roundedRect(ctx,320,530,210,74,14,'#f7f9fd','#e4ebf4');ctx.fillStyle='#66788f';ctx.font='700 16px Arial';ctx.fillText('FAMILY',110,556);ctx.fillText('HELPER',335,556);ctx.fillStyle='#193862';ctx.font='700 22px Arial';ctx.fillText(state.meta.family||'—',110,586);ctx.fillText(state.meta.helper||'—',335,586);roundedRect(ctx,610,275,565,280,24,'#eef7ff','#dce6f2');var art=getTemplateArt(currentTemplate);ctx.textAlign='center';ctx.font='82px Arial';ctx.fillText(art.emoji,892,385);ctx.fillStyle='#0a2d66';ctx.font='700 34px Arial';ctx.fillText(art.title,892,442);ctx.fillStyle='#66788f';ctx.font='22px Arial';wrapText(ctx,art.sub,720,485,345,30,2);ctx.textAlign='left';var cols=[[65,585],[630,585],[65,965],[630,965]],cardW=545,cardH=350;sectionNames.forEach(function(sec,idx){var x=cols[idx][0],y=cols[idx][1];roundedRect(ctx,x,y,cardW,cardH,20,'#fff','#dce6f2');ctx.fillStyle='#eef1ff';ctx.fillRect(x,y,cardW,62);ctx.fillStyle='#0a2d66';ctx.font='700 28px Arial';ctx.fillText(sectionCN[sec]+' · '+sec,x+22,y+40);var rr=state.plans[currentPlan][sec].filter(function(r){return r.time||r.task||r.notes}).slice(0,5);var yy=y+92;rr.forEach(function(r){ctx.fillStyle='#0b78d4';ctx.font='700 22px Arial';ctx.fillText(r.time||'—',x+22,yy);ctx.fillStyle='#193862';ctx.font='700 21px Arial';wrapText(ctx,r.task||'—',x+150,yy,340,27,2);if(r.notes){ctx.fillStyle='#66788f';ctx.font='18px Arial';wrapText(ctx,r.notes,x+150,yy+28,340,22,1)}ctx.strokeStyle='#edf2f8';ctx.beginPath();ctx.moveTo(x+22,yy+48);ctx.lineTo(x+cardW-22,yy+48);ctx.stroke();yy+=60})});roundedRect(ctx,65,1335,1110,105,18,'#0a2d66');var grad=ctx.createLinearGradient(65,1335,1175,1335);grad.addColorStop(0,'#0a2d66');grad.addColorStop(.55,'#0b78d4');grad.addColorStop(1,'#7446d8');ctx.fillStyle=grad;ctx.fillRect(65,1335,1110,105);ctx.fillStyle='#fff';ctx.font='700 26px Arial';ctx.fillText('Most important',85,1375);ctx.font='20px Arial';ctx.fillText('Build the habit first, then slowly reduce reminders. Keep the routine clear, simple and consistent.',85,1410);roundedRect(ctx,65,1460,1110,170,18,'#fff','#dce6f2');ctx.fillStyle='#193862';ctx.font='700 24px Arial';ctx.fillText('Special Notes / 特别备注',85,1498);ctx.font='20px Arial';wrapText(ctx,state.meta.notes||'—',85,1535,1040,28,3);ctx.fillStyle='#66788f';ctx.font='18px Arial';ctx.textAlign='right';ctx.fillText('Ready Maid Agency · Chat with us on WhatsApp',1170,1660);ctx.textAlign='left';var b64=cv.toDataURL('image/jpeg',.94).split(',')[1],bin=atob(b64),jpg=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)jpg[i]=bin.charCodeAt(i);var pdf=new Blob([jpegPdfBytes(jpg,W,H)],{type:'application/pdf'}),a=document.createElement('a');a.href=URL.createObjectURL(pdf);a.download='Ready_Maid_Helper_Routine.pdf';document.body.appendChild(a);a.click();var href=a.href;a.remove();setTimeout(function(){URL.revokeObjectURL(href)},2500);st.textContent='PDF downloaded'}catch(e){console.error(e);st.textContent='Download failed'}}
-function setup(){load();renderEditor();bindMeta('familyInput','family');bindMeta('helperInput','helper');bindMeta('notesInput','notes');document.querySelectorAll('[data-plan]').forEach(function(b){b.onclick=function(){currentPlan=b.dataset.plan;renderEditor()}});templateSelect.onchange=function(){currentTemplate=this.value;state.plans[currentPlan]=clone(templateData[currentTemplate]);save();renderEditor()};zoomSelect.onchange=function(){previewStack.style.transform='scale('+this.value+')'};previewStack.style.transform='scale(.9)';downloadBothTop.onclick=downloadPDF;downloadPdfBtn.onclick=downloadPDF;resetBtn.onclick=function(){if(confirm('Reset the whole planner?')){state=defaultState();currentPlan='weekday';currentTemplate='housework';renderEditor();save()}}}setup()})();
-</script>
+<header class="rmh-header hide-print">
+  <div class="rmh-shell">
+    <div class="rmh-top">
+      <div class="rmh-brand">
+        <img class="rmh-logo" src="ready-maid-logo-transparent.png?v=20260822-2235" alt="Ready Maid Agency">
+      </div>
+
+      <div class="rmh-body">
+        <div class="rmh-kicker">READY MAID CUSTOMER TOOL</div>
+        <h1 class="rmh-title">Helper Routine Planner</h1>
+        <p class="rmh-subtitle">
+          Build a clear daily routine for your helper, adjust it anytime,
+          and download one clean Ready Maid customer PDF.
+        </p>
+      </div>
+
+      <div class="rmh-actions">
+        <button class="rmh-btn rmh-btn-ghost" id="resetBtn" type="button">Reset</button>
+        <button class="rmh-btn rmh-btn-primary" id="downloadBothTop" type="button">
+          <span class="rmh-btn-icon">↓</span>
+          <span>Download PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="rmh-accent" aria-hidden="true">
+      <span class="rmh-accent-a"></span>
+      <span class="rmh-accent-b"></span>
+      <span class="rmh-accent-c"></span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="hero hide-print">
+    <h1>Single-page customer routine planner</h1>
+    <p>Customer fills in the routine and downloads one clean visual Ready Maid routine page.</p>
+  </section>
+
+  <section class="workspace">
+    <div class="panel editor-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Routine Builder</div>
+          <div class="panel-sub">Choose a template, then adjust the timetable. The poster visual is fixed automatically by the selected template.</div>
+        </div>
+        <div class="controls">
+          <button class="small-btn active-tab" data-plan="weekday">Weekday</button>
+          <button class="small-btn" data-plan="weekend">Weekend</button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="meta-grid">
+          <div class="field">
+            <label>Family / Customer Name</label>
+            <input id="familyInput" placeholder="Optional">
+          </div>
+          <div class="field">
+            <label>Helper Name</label>
+            <input id="helperInput" placeholder="Optional">
+          </div>
+        </div>
+
+        <div class="meta-grid" style="margin-top:10px">
+          <div class="field">
+            <label>Quick Template</label>
+            <select id="templateSelect">
+              <option value="childcare">Baby / Childcare</option>
+              <option value="elderly">Elderly Care</option>
+              <option value="housework" selected>Housework & Cooking</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="sectionRoot"></div>
+
+        <div class="field" style="margin-top:12px">
+          <label>Special Notes</label>
+          <textarea id="notesInput" rows="8" placeholder="Baby nap time, medicine reminder, food preference, key rules..."></textarea>
+        </div>
+
+        <div class="helper-note">
+          <b>Owner tip:</b> keep roughly the same routine for 1–2 weeks. Once the helper remembers the flow, slowly reduce reminders. This tool saves on the same device whenever local browser storage is available.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel preview-panel">
+      <div class="panel-head hide-print">
+        <div>
+          <div class="panel-title">Preview</div>
+          <div class="panel-sub">The final result is one visual A4 routine page.</div>
+        </div>
+        <div class="controls">
+          <div class="zoom-box">
+            <span>Zoom</span>
+            <select id="zoomSelect">
+              <option value="0.75">75%</option>
+              <option value="0.9" selected>90%</option>
+              <option value="1">100%</option>
+              <option value="1.1">110%</option>
+            </select>
+          </div>
+          <button class="small-btn" id="tableOnlyBtn">Table Only</button>
+          <button class="small-btn" id="posterOnlyBtn">Poster Only</button>
+          <button class="small-btn" id="bothBtn">Both</button>
+        </div>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="preview-scroll">
+          <div class="preview-stack" id="previewStack">
+            <div class="page table-page" id="tablePage">
+              <div class="p-header">
+                <div class="p-brand">
+                  <img class="p-logo" src="ready-maid-logo-transparent.png?v=20260822-2235" alt="Ready Maid Agency">
+                </div>
+                <div class="p-badge">Licence C · JTKSM</div>
+              </div>
+              <div class="center-title">
+                <h2>Helper Daily Routine</h2>
+                <div class="zh">女佣日常时间表</div>
+              </div>
+              <div class="meta-panels">
+                <div><b>FAMILY</b><span id="tableFamily">—</span></div>
+                <div><b>HELPER</b><span id="tableHelper">—</span></div>
+              </div>
+              <div class="table-grid" id="tableSections"></div>
+              <div class="special-box">
+                <b>Special Notes / 特别备注</b>
+                <div id="tableNotes">—</div>
+              </div>
+              <div class="footer-band">Ready Maid Agency · We Match, You Relax. · Established 2001 · JTKSM Licensed Agency</div>
+            </div>
+
+            <div class="page poster-page" id="posterPage">
+              <div class="p-header">
+                <div class="p-brand">
+                  <img class="p-logo" src="ready-maid-logo-transparent.png?v=20260822-2235" alt="Ready Maid Agency">
+                </div>
+                <div class="p-badge">Licence C · JTKSM</div>
+              </div>
+              <div class="poster-hero">
+                <div class="poster-copy">
+                  <h3>Daily Routine <span>Overview</span></h3>
+                  <p>This visual version is easier to share with the helper. The same timetable content is shown in a cleaner poster style with a photo area and grouped routine blocks.</p>
+                  <div class="info-row">
+                    <div class="info-card"><b>FAMILY</b><span id="posterFamily">—</span></div>
+                    <div class="info-card"><b>HELPER</b><span id="posterHelper">—</span></div>
+                  </div>
+                </div>
+                <div class="poster-photo" id="posterPhotoBox">
+                  <div class="placeholder">Template illustration area</div>
+                </div>
+              </div>
+              <div class="poster-sections" id="posterSections"></div>
+              <div class="poster-tip">
+                <b>Most important</b>
+                <div>Build the habit first, then slowly reduce reminders. Keep the routine clear, simple and consistent.</div>
+              </div>
+              <div class="special-box" style="margin-top:10px">
+                <b>Special Notes / 特别备注</b>
+                <div id="posterNotes">—</div>
+              </div>
+              <div class="poster-footnote">
+                <span></span>
+                <span>Ready Maid Agency · Chat with us on WhatsApp</span>
+              </div>
+              <div class="footer-band">Ready Maid Agency · We Match, You Relax. · Established 2001 · JTKSM Licensed Agency</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hide-print" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn primary" id="downloadPdfBtn" style="min-width:240px">Download PDF</button>
+          <span class="status-text" id="saveState">Ready</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="routine-1.js?v=20260822-2235"></script>
+<script src="routine-2.js?v=20260822-2235"></script>
+<script src="routine-3.js?v=20260822-2235"></script>
 </body>
 </html>

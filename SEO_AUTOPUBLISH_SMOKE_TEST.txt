@@ -1,3 +1,0 @@
-Ready Maid SEO auto-publisher smoke test.
-Created 2026-08-22 MYT.
-No production SEO content should depend on this file.

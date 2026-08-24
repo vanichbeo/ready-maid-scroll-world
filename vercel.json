@@ -35,6 +35,10 @@
   ],
   "rewrites": [
     {
+      "source": "/",
+      "destination": "https://ready-maid-scroll-world-ns4s804uw-readymaid.vercel.app/"
+    },
+    {
       "source": "/:path*",
       "destination": "https://ready-maid-scroll-world-ns4s804uw-readymaid.vercel.app/:path*"
     }

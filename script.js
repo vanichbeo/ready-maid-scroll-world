@@ -108,6 +108,40 @@ if (dukeModal && dukeVideo && dukeOpeners.length) {
   });
 }
 
+// COMPLIANCE LINKS — must remain visible on the production homepage.
+const homepageQuickLinks = [...document.querySelectorAll('.site-footer .footer-column')]
+  .find((column) => column.querySelector('h2')?.textContent.trim() === 'QUICK LINKS');
+if (homepageQuickLinks) {
+  const requiredLinks = [
+    ['/refund-policy/', 'Refund Policy'],
+    ['/fees-payment-replacement-policy/', 'Fees & Payment Policy']
+  ];
+  requiredLinks.forEach(([href, label]) => {
+    if (!homepageQuickLinks.querySelector(`a[href="${href}"]`)) {
+      const link = document.createElement('a');
+      link.href = href;
+      link.textContent = label;
+      homepageQuickLinks.appendChild(link);
+    }
+  });
+}
+
+const homepageLegalLinks = document.querySelector('.site-footer .footer-bottom-row > div');
+if (homepageLegalLinks) {
+  const requiredLegalLinks = [
+    ['/refund-policy/', 'Refund Policy'],
+    ['/fees-payment-replacement-policy/', 'Fees & Payment']
+  ];
+  requiredLegalLinks.forEach(([href, label]) => {
+    if (!homepageLegalLinks.querySelector(`a[href="${href}"]`)) {
+      const link = document.createElement('a');
+      link.href = href;
+      link.textContent = label;
+      homepageLegalLinks.appendChild(link);
+    }
+  });
+}
+
 // CURRENT YEAR AND RESILIENT IN-PAGE FOCUS
 const year = document.querySelector('[data-current-year]');
 if (year) year.textContent = String(new Date().getFullYear());

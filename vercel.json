@@ -1,6 +1,7 @@
 {
   "cleanUrls": false,
   "trailingSlash": true,
+  "ignoreCommand": "node scripts/vercel-seo-guard.mjs",
   "headers": [
     {
       "source": "/script.js",

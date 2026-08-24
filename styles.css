@@ -936,33 +936,3 @@ section[id],div[id]{scroll-margin-top:88px}
 .header-social.rednote>span{display:block;white-space:nowrap;font-size:8px;font-weight:900;line-height:1;letter-spacing:-.06em;transform:translateY(.2px)}
 .footer-social-icon.rednote{background:#e72f3f;overflow:hidden;white-space:nowrap;font-size:0;line-height:1}
 .footer-social-icon.rednote>span{display:block;white-space:nowrap;font-size:9px;font-weight:900;line-height:1;letter-spacing:-.08em;transform:translateY(.2px)}
-
-/* Phase 12 commercial draft pages */
-.content-page{background:#071325;color:#eef7ff}.content-page .site-header{display:flex;justify-content:space-between;align-items:center;padding:18px clamp(20px,5vw,72px);background:#08162a;border-bottom:1px solid rgba(116,214,255,.18)}.content-page .site-header img,.content-page footer img{width:190px;height:auto}.content-page .header-wa,.content-page .primary-cta{display:inline-flex;padding:13px 20px;border-radius:999px;background:linear-gradient(90deg,#37d5ff,#7e61ff);color:#fff;text-decoration:none;font-weight:800}.content-page main{padding:52px 20px}.content-page .breadcrumb,.content-page .content-shell{max-width:920px;margin:auto}.content-page .breadcrumb{color:#9db4c9;font-size:.9rem;margin-bottom:22px}.content-page .content-shell{background:rgba(9,28,50,.88);border:1px solid rgba(116,214,255,.18);border-radius:28px;padding:clamp(24px,5vw,64px);box-shadow:0 28px 90px rgba(0,0,0,.25)}.content-page .eyebrow{color:#62dbff;text-transform:uppercase;letter-spacing:.12em;font-size:.78rem;font-weight:800}.content-page h1{font-size:clamp(2.2rem,5vw,4rem);line-height:1.05;margin:.5rem 0 1rem}.content-page h2{margin-top:2.2rem;color:#fff}.content-page h3{margin-top:1.5rem;color:#d9ecff}.content-page p,.content-page li{line-height:1.75;color:#c5d5e6}.content-page .legal-intro{padding:14px 18px;border-left:3px solid #43d5ff;background:rgba(67,213,255,.07)}.content-page .conversion-card{margin-top:3rem;padding:26px;border-radius:22px;background:linear-gradient(135deg,rgba(49,211,255,.12),rgba(126,97,255,.13));border:1px solid rgba(116,214,255,.25)}.content-page footer{text-align:center;padding:42px 20px;background:#050d19;color:#9db4c9}.content-page footer p{max-width:900px;margin:16px auto 0}@media(max-width:640px){.content-page .site-header img{width:145px}.content-page .content-shell{border-radius:20px;padding:24px 20px}}
-
-
-/* Phase 13: crawlable internal-link and content-cluster components */
-.breadcrumb a{color:inherit;text-decoration:none}.breadcrumb a:hover,.breadcrumb a:focus-visible{text-decoration:underline}
-.related-content{margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,.13)}
-.related-content>p{max-width:64ch}.related-grid,.guide-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1.25rem}
-.related-card,.guide-hub-card{display:flex;flex-direction:column;gap:.45rem;padding:1.1rem 1.15rem;border:1px solid rgba(100,220,255,.22);border-radius:16px;background:rgba(255,255,255,.035);color:inherit;text-decoration:none;transition:border-color .18s ease,background .18s ease}
-.related-card:hover,.related-card:focus-visible,.guide-hub-card:hover,.guide-hub-card:focus-visible{border-color:rgba(120,225,255,.65);background:rgba(100,210,255,.075);outline:none}
-.related-type{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;opacity:.72}.related-card strong,.guide-hub-card strong{font-size:1.05rem}.related-card>span:last-child,.guide-hub-card>span{opacity:.78;font-size:.9rem}
-@media(max-width:720px){.related-grid,.guide-hub-grid{grid-template-columns:1fr}}
-
-/* Phase 14: evidence-media integration — locked approved assets only */
-.evidence-media{margin:1.75rem 0 2.1rem;border:1px solid rgba(109,226,255,.23);border-radius:22px;overflow:hidden;background:rgba(7,20,46,.72);box-shadow:0 18px 55px rgba(0,0,0,.24)}
-.evidence-media img{display:block;width:100%;height:auto;max-height:540px;object-fit:cover;background:#07142e}
-.evidence-media figcaption{padding:.85rem 1rem;color:#b8c7e6;font-size:.9rem;line-height:1.45;border-top:1px solid rgba(109,226,255,.14)}
-.evidence-media--licence img{object-fit:contain;max-height:680px;padding:1rem}
-.evidence-media__link{display:inline-flex;margin:.15rem 0 0;color:#72e7ff;font-weight:700}
-@media (max-width:720px){.evidence-media{margin:1.25rem 0 1.6rem;border-radius:16px}.evidence-media img{max-height:360px}.evidence-media--licence img{max-height:520px;padding:.65rem}}
-
-/* Phase 30 technical integration: shared crawlable navigation and legal/footer system */
-.content-global-nav{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;border-bottom:1px solid rgba(105,222,255,.15)}
-.content-global-nav a{color:inherit;text-decoration:none;padding:9px 11px;border-radius:10px;font-size:.9rem}.content-global-nav a:hover,.content-global-nav a:focus-visible{background:rgba(91,220,255,.12);outline:2px solid rgba(91,220,255,.55);outline-offset:2px}
-.content-site-footer{margin-top:64px;padding:40px max(22px,calc((100vw - 1180px)/2));background:#050d20;border-top:1px solid rgba(105,222,255,.18)}
-.content-footer-grid{display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:28px}.content-site-footer h2{font-size:1rem;margin:0 0 12px}.content-site-footer a{display:block;color:inherit;text-decoration:none;margin:7px 0}.content-site-footer p{color:rgba(238,246,255,.75);font-size:.9rem}.content-footer-bottom{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
-.trust-card{margin-top:30px;padding:22px;border:1px solid rgba(105,222,255,.22);border-radius:18px;background:rgba(8,18,44,.72)}
-@media(max-width:800px){.content-footer-grid{grid-template-columns:1fr 1fr}.content-global-nav{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap}.content-global-nav a{white-space:nowrap}}
-@media(max-width:520px){.content-footer-grid{grid-template-columns:1fr}.content-site-footer{padding-left:18px;padding-right:18px}}

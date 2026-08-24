@@ -75,30 +75,3 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 
-// COMPLIANCE LINK — always expose the dedicated Refund Policy from the landing-page footer.
-function ensureRefundPolicyLink() {
-  const footer = document.querySelector('.site-footer');
-  if (!footer) return;
-
-  const existing = footer.querySelector('a[href="/refund-policy/"]');
-  if (existing) return;
-
-  const quickLinks = [...footer.querySelectorAll('.footer-column')]
-    .find((column) => column.querySelector('h2')?.textContent.trim() === 'QUICK LINKS');
-  if (!quickLinks) return;
-
-  const refundLink = document.createElement('a');
-  refundLink.href = '/refund-policy/';
-  refundLink.textContent = 'Refund Policy';
-  refundLink.setAttribute('aria-label', 'Refund Policy');
-
-  const helpfulGuides = [...quickLinks.querySelectorAll('a')]
-    .find((link) => link.textContent.trim() === 'Helpful Guides');
-  if (helpfulGuides) helpfulGuides.insertAdjacentElement('afterend', refundLink);
-  else quickLinks.appendChild(refundLink);
-}
-
-ensureRefundPolicyLink();
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', ensureRefundPolicyLink, { once: true });
-}

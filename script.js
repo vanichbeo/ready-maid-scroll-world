@@ -1,4 +1,4 @@
-// READY MAID RESPONSIVE HOMEPAGE V1.5 — MAXIMUM ASSET-FREE TECHNICAL POLISH
+// READY MAID RESPONSIVE HOMEPAGE — Meet DUKE locked production baseline
 'use strict';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -64,6 +64,50 @@ if (!reducedMotion.matches && 'IntersectionObserver' in window) {
   revealItems.forEach((item) => revealObserver.observe(item));
 }
 
+// MEET DUKE — locked six-video modal player
+const dukeModal = document.querySelector('.duke-video-modal');
+const dukeVideo = dukeModal?.querySelector('video');
+const dukeModalTitle = dukeModal?.querySelector('#duke-modal-title');
+const dukeVideoError = dukeModal?.querySelector('.duke-video-error');
+const dukeOpeners = [...document.querySelectorAll('.duke-video-open')];
+let lastDukeTrigger = null;
+
+const closeDukeVideo = () => {
+  if (!dukeModal || !dukeVideo) return;
+  dukeVideo.pause();
+  dukeVideo.removeAttribute('src');
+  dukeVideo.load();
+  dukeModal.hidden = true;
+  dukeModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('video-modal-open');
+  if (dukeVideoError) dukeVideoError.hidden = true;
+  lastDukeTrigger?.focus();
+};
+
+if (dukeModal && dukeVideo && dukeOpeners.length) {
+  dukeOpeners.forEach((opener) => {
+    opener.addEventListener('click', (event) => {
+      event.preventDefault();
+      const src = opener.dataset.videoSrc || opener.getAttribute('href');
+      if (!src) return;
+      lastDukeTrigger = opener;
+      if (dukeModalTitle) dukeModalTitle.textContent = opener.dataset.videoTitle || 'Meet DUKE';
+      if (dukeVideoError) dukeVideoError.hidden = true;
+      dukeVideo.src = src;
+      dukeModal.hidden = false;
+      dukeModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('video-modal-open');
+      dukeVideo.load();
+      dukeVideo.play().catch(() => {});
+    });
+  });
+  dukeModal.querySelectorAll('[data-video-close]').forEach((control) => control.addEventListener('click', closeDukeVideo));
+  dukeVideo.addEventListener('error', () => { if (dukeVideoError) dukeVideoError.hidden = false; });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !dukeModal.hidden) closeDukeVideo();
+  });
+}
+
 // CURRENT YEAR AND RESILIENT IN-PAGE FOCUS
 const year = document.querySelector('[data-current-year]');
 if (year) year.textContent = String(new Date().getFullYear());
@@ -74,4 +118,3 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
     window.setTimeout(() => target.setAttribute('tabindex', target.hasAttribute('tabindex') ? target.getAttribute('tabindex') : '-1'), 0);
   });
 });
-

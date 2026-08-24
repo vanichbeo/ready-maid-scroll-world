@@ -1,6 +1,42 @@
 // READY MAID RESPONSIVE HOMEPAGE — Meet DUKE locked production baseline
 'use strict';
 
+// P0 COMPLIANCE LINKS — execute first, before any optional homepage behavior.
+(() => {
+  const quickLinks = [...document.querySelectorAll('.site-footer .footer-column')]
+    .find((column) => column.querySelector('h2')?.textContent.trim() === 'QUICK LINKS');
+  if (quickLinks) {
+    [
+      ['/refund-policy/', 'Refund Policy'],
+      ['/fees-payment-replacement-policy/', 'Fees & Payment Policy']
+    ].forEach(([href, label]) => {
+      if (!quickLinks.querySelector(`a[href="${href}"]`)) {
+        const link = document.createElement('a');
+        link.href = href;
+        link.textContent = label;
+        link.setAttribute('data-compliance-link', 'true');
+        quickLinks.appendChild(link);
+      }
+    });
+  }
+
+  const legalLinks = document.querySelector('.site-footer .footer-bottom-row > div');
+  if (legalLinks) {
+    [
+      ['/refund-policy/', 'Refund Policy'],
+      ['/fees-payment-replacement-policy/', 'Fees & Payment']
+    ].forEach(([href, label]) => {
+      if (!legalLinks.querySelector(`a[href="${href}"]`)) {
+        const link = document.createElement('a');
+        link.href = href;
+        link.textContent = label;
+        link.setAttribute('data-compliance-link', 'true');
+        legalLinks.appendChild(link);
+      }
+    });
+  }
+})();
+
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const navLinks = [...document.querySelectorAll('.desktop-nav a')];
 const sections = navLinks
@@ -105,40 +141,6 @@ if (dukeModal && dukeVideo && dukeOpeners.length) {
   dukeVideo.addEventListener('error', () => { if (dukeVideoError) dukeVideoError.hidden = false; });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !dukeModal.hidden) closeDukeVideo();
-  });
-}
-
-// COMPLIANCE LINKS — must remain visible on the production homepage.
-const homepageQuickLinks = [...document.querySelectorAll('.site-footer .footer-column')]
-  .find((column) => column.querySelector('h2')?.textContent.trim() === 'QUICK LINKS');
-if (homepageQuickLinks) {
-  const requiredLinks = [
-    ['/refund-policy/', 'Refund Policy'],
-    ['/fees-payment-replacement-policy/', 'Fees & Payment Policy']
-  ];
-  requiredLinks.forEach(([href, label]) => {
-    if (!homepageQuickLinks.querySelector(`a[href="${href}"]`)) {
-      const link = document.createElement('a');
-      link.href = href;
-      link.textContent = label;
-      homepageQuickLinks.appendChild(link);
-    }
-  });
-}
-
-const homepageLegalLinks = document.querySelector('.site-footer .footer-bottom-row > div');
-if (homepageLegalLinks) {
-  const requiredLegalLinks = [
-    ['/refund-policy/', 'Refund Policy'],
-    ['/fees-payment-replacement-policy/', 'Fees & Payment']
-  ];
-  requiredLegalLinks.forEach(([href, label]) => {
-    if (!homepageLegalLinks.querySelector(`a[href="${href}"]`)) {
-      const link = document.createElement('a');
-      link.href = href;
-      link.textContent = label;
-      homepageLegalLinks.appendChild(link);
-    }
   });
 }
 

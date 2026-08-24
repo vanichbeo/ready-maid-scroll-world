@@ -75,3 +75,15 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 
+// COMPLIANCE LINK — keep the dedicated Refund Policy directly reachable from the landing-page footer.
+const homepageQuickLinks = [...document.querySelectorAll('.site-footer .footer-column')]
+  .find((column) => column.querySelector('h2')?.textContent.trim() === 'QUICK LINKS');
+if (homepageQuickLinks && !homepageQuickLinks.querySelector('a[href="/refund-policy/"]')) {
+  const refundLink = document.createElement('a');
+  refundLink.href = '/refund-policy/';
+  refundLink.textContent = 'Refund Policy';
+  const helpfulGuides = [...homepageQuickLinks.querySelectorAll('a')]
+    .find((link) => link.textContent.trim() === 'Helpful Guides');
+  if (helpfulGuides) helpfulGuides.insertAdjacentElement('afterend', refundLink);
+  else homepageQuickLinks.appendChild(refundLink);
+}

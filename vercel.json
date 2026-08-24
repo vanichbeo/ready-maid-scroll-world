@@ -1,0 +1,28 @@
+{
+  "cleanUrls": false,
+  "trailingSlash": true,
+  "headers": [
+    {
+      "source": "/script.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https://ready-maid-scroll-world-ns4s804uw-readymaid.vercel.app; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://ready-maid-scroll-world-ns4s804uw-readymaid.vercel.app; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://wa.me; upgrade-insecure-requests" }
+      ]
+    }
+  ],
+  "redirects": [
+    { "source": "/about/", "destination": "/about-ready-maid/", "permanent": true },
+    { "source": "/contact/", "destination": "/contact-ready-maid/", "permanent": true },
+    { "source": "/services/", "destination": "/", "permanent": true }
+  ]
+}

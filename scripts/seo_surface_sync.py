@@ -19,7 +19,8 @@ GUIDES = ROOT / "guides"
 HUB = GUIDES / "index.html"
 SITEMAP = ROOT / "sitemap.xml"
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.I | re.S)
-CANON_RE = re.compile(r'<link[^>]+rel=["\']canonical["\'][^>]+href=["\']([^"\']+)["\']', re.I)
+LINK_TAG_RE = re.compile(r"<link\b[^>]*>", re.I)
+ATTR_RE = re.compile(r"([:\w-]+)\s*=\s*([\"'])(.*?)\2", re.I | re.S)
 HREF_RE = re.compile(r'href=["\']([^"\']+)["\']', re.I)
 LOC_RE = re.compile(r"<loc>(.*?)</loc>", re.I | re.S)
 
@@ -29,15 +30,23 @@ def clean_title(raw: str) -> str:
     return re.sub(r"\s*\|\s*Ready Maid.*$", "", text, flags=re.I).strip()
 
 
+def canonical_from_html(text: str) -> str | None:
+    for tag in LINK_TAG_RE.findall(text):
+        attrs = {name.lower(): value for name, _, value in ATTR_RE.findall(tag)}
+        rel_tokens = {token.lower() for token in attrs.get("rel", "").split()}
+        if "canonical" in rel_tokens and attrs.get("href"):
+            return attrs["href"].strip()
+    return None
+
+
 def published_guides():
     out = []
     for page in sorted(GUIDES.glob("*/index.html")):
         text = page.read_text(encoding="utf-8")
         title_m = TITLE_RE.search(text)
-        canon_m = CANON_RE.search(text)
-        if not title_m or not canon_m:
+        canonical = canonical_from_html(text)
+        if not title_m or not canonical:
             raise SystemExit(f"Missing title/canonical: {page.relative_to(ROOT)}")
-        canonical = canon_m.group(1).strip()
         path = urlparse(canonical).path
         if not path.startswith("/guides/") or path == "/guides/":
             raise SystemExit(f"Unexpected guide canonical: {canonical}")

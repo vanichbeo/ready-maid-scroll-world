@@ -18,12 +18,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Prove Meet DUKE guard rejects injected regressions
         run: node scripts/vercel-seo-guard.mjs --self-test
       - name: Verify cryptographic Meet DUKE baseline
         run: node scripts/vercel-seo-guard.mjs --ci
       - name: Audit sitemap pages, metadata, assets and links
         run: node scripts/seo-site-audit.mjs
+      - name: Verify guide hub and sitemap synchronization
+        run: python scripts/seo_surface_sync.py --check
       - name: Verify protected Meet DUKE remote media
         run: node scripts/check-duke-media.mjs
 

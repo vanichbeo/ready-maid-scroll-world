@@ -5,6 +5,19 @@ on:
     - cron: '5 23 * * *'
     - cron: '5 0 * * *'
   workflow_dispatch:
+    inputs:
+      fault_stage:
+        description: Manual-only recovery test fault point
+        required: false
+        default: none
+        type: choice
+        options:
+          - none
+          - after_change_prepared
+          - after_pr_created
+          - during_ci
+          - after_merge
+          - before_reconcile
   push:
     branches: [main]
     paths:
@@ -29,6 +42,7 @@ jobs:
       BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker
       OIDC_AUD: readymaid-seo-worker
       GH_TOKEN: ${{ github.token }}
+      FAULT_STAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.fault_stage || 'none' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -153,6 +167,10 @@ jobs:
           PY
           curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/stage.json
           cat /tmp/seo-worker-result.json
+          if [ "$FAULT_STAGE" = "after_change_prepared" ]; then
+            echo '{"class":"TRANSIENT","stage":"change_prepared","message":"controlled fault injection after change_prepared"}' > /tmp/failure.json
+            exit 97
+          fi
 
       - name: Run all production safety gates locally
         if: steps.lease.outputs.active == 'true' && steps.lease.outputs.qa_passed_done != 'true'
@@ -213,6 +231,10 @@ jobs:
           curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/pr-stage.json
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          if [ "$FAULT_STAGE" = "after_pr_created" ]; then
+            echo '{"class":"TRANSIENT","stage":"pr_created","message":"controlled fault injection after pr_created"}' > /tmp/failure.json
+            exit 97
+          fi
 
       - name: Run or recover independent SEO Production Gate
         if: steps.lease.outputs.active == 'true'
@@ -238,6 +260,10 @@ jobs:
           fi
           [ -n "$RUN_ID" ]
           echo "gate_run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          if [ "$FAULT_STAGE" = "during_ci" ]; then
+            echo '{"class":"WAITING_EXTERNAL","stage":"ci_passed","message":"controlled fault injection while CI is external/pending"}' > /tmp/failure.json
+            exit 97
+          fi
 
           for i in {1..60}; do
             STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq .status)
@@ -281,6 +307,10 @@ jobs:
           PY
           curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/merge-stage.json
           echo "merge_sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
+          if [ "$FAULT_STAGE" = "after_merge" ]; then
+            echo '{"class":"TRANSIENT","stage":"merged","message":"controlled fault injection after merge"}' > /tmp/failure.json
+            exit 97
+          fi
 
       - name: Verify deployment and live production without republishing
         if: steps.lease.outputs.active == 'true'
@@ -312,6 +342,14 @@ jobs:
           done
           echo '{"class":"WAITING_EXTERNAL","stage":"live_verified","message":"live propagation not complete within worker wait window"}' > /tmp/failure.json
           exit 1
+
+      - name: Controlled fault before final reconciliation
+        if: steps.lease.outputs.active == 'true' && env.FAULT_STAGE == 'before_reconcile'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '{"class":"TRANSIENT","stage":"reconciled","message":"controlled fault injection before reconciliation"}' > /tmp/failure.json
+          exit 97
 
       - name: Reconcile PASS into the same Supabase run
         if: steps.lease.outputs.active == 'true'

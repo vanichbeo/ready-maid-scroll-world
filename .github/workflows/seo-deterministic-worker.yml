@@ -201,6 +201,16 @@ jobs:
           ev={"protected_surface_ok": True}
           if os.path.exists('/tmp/seo-worker-result.json'):
               ev.update(json.load(open('/tmp/seo-worker-result.json')))
+          pr_number="${{ steps.pr.outputs.pr_number }}"
+          merge_sha="${{ steps.merge.outputs.merge_sha }}"
+          gate_run_id="${{ steps.gate.outputs.gate_run_id }}"
+          if pr_number.isdigit():
+              ev["pr_number"]=int(pr_number)
+          if merge_sha:
+              ev["merge_sha"]=merge_sha
+          if gate_run_id:
+              ev["gate_run_id"]=gate_run_id
+          ev["live_verified"]=os.path.exists('/tmp/live-verified')
           print(json.dumps({
             "action":"finalize",
             "run_id":"${{ steps.lease.outputs.run_id }}",

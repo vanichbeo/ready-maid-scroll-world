@@ -47,115 +47,270 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
-          curl -fsS -X POST "$BROKER_URL"             -H "Authorization: Bearer $TOKEN"             -H "Content-Type: application/json"             --data '{"action":"lease"}' > /tmp/seo-lease.json
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          curl -fsS -X POST "$BROKER_URL" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"action":"lease"}' > /tmp/seo-lease.json
           cat /tmp/seo-lease.json
           python - <<'PY'
           import json, os
           d=json.load(open('/tmp/seo-lease.json'))
+          stages={x.get('stage_name'):x for x in d.get('stages',[])}
           out=os.environ['GITHUB_OUTPUT']
           with open(out,'a') as f:
               f.write(f"run_id={d.get('run_id','')}\n")
               f.write(f"run_date={d.get('run_date','')}\n")
               f.write(f"attempt_no={d.get('attempt_no',1)}\n")
+              f.write(f"resume_from={d.get('resume_from','change_prepared')}\n")
+              for s in ['change_prepared','qa_passed','branch_created','pr_created','ci_passed','merged','deployment_ready','live_verified','reconciled']:
+                  f.write(f"{s}_done={'true' if stages.get(s,{}).get('status')=='completed' else 'false'}\n")
               active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') == 'RELINK'
               f.write(f"active={'true' if active else 'false'}\n")
           PY
 
-      - name: Prepare one deterministic RELINK change
+      - name: Recover durable and remote GitHub evidence
         if: steps.lease.outputs.active == 'true'
+        id: recover
+        shell: bash
         run: |
           set -euo pipefail
+          RUN8=$(echo "${{ steps.lease.outputs.run_id }}" | cut -c1-8)
+          BRANCH="seo-auto-${RUN8}"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+          python - <<'PY'
+          import json
+          d=json.load(open('/tmp/seo-lease.json'))
+          stages={x.get('stage_name'):x for x in d.get('stages',[])}
+          wr=(stages.get('change_prepared',{}).get('evidence') or {}).get('worker_result')
+          if wr:
+              open('/tmp/seo-worker-result.json','w').write(json.dumps(wr,indent=2)+'\n')
+          PY
+
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          checkpoint() {
+            curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data "$1"
+          }
+
+          BRANCH_EXISTS=false
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            BRANCH_EXISTS=true
+            git fetch origin "$BRANCH"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+            PAYLOAD=$(python - <<PY
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"branch_created","status":"completed","branch_name":"$BRANCH","evidence":{"recovered_from_remote":True}}))
+          PY
+          )
+            checkpoint "$PAYLOAD"
+          fi
+          echo "branch_exists=$BRANCH_EXISTS" >> "$GITHUB_OUTPUT"
+
+          PR_NUMBER=$(gh pr list --repo "$REPO" --head "$BRANCH" --state all --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$PR_NUMBER" ]; then
+            echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+            PAYLOAD=$(python - <<PY
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"pr_created","status":"completed","branch_name":"$BRANCH","pr_number":int("$PR_NUMBER"),"evidence":{"recovered_from_remote":True}}))
+          PY
+          )
+            checkpoint "$PAYLOAD"
+            MERGED_AT=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergedAt --jq '.mergedAt // empty')
+            if [ -n "$MERGED_AT" ]; then
+              MERGE_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergeCommit --jq '.mergeCommit.oid')
+              echo "merge_sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
+              PAYLOAD=$(python - <<PY
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"merged","status":"completed","pr_number":int("$PR_NUMBER"),"commit_sha":"$MERGE_SHA","evidence":{"recovered_from_remote":True}}))
+          PY
+          )
+              checkpoint "$PAYLOAD"
+            fi
+          fi
+
+          if [ -f /tmp/seo-worker-result.json ]; then echo "has_result=true" >> "$GITHUB_OUTPUT"; else echo "has_result=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Prepare one deterministic RELINK change
+        if: steps.lease.outputs.active == 'true' && steps.recover.outputs.has_result != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'echo "{\"class\":\"TRANSIENT\",\"stage\":\"change_prepared\",\"message\":\"change preparation failed\"}" > /tmp/failure.json' ERR
           node scripts/seo-deterministic-worker.mjs --lease /tmp/seo-lease.json --out /tmp/seo-worker-result.json
           test "$(git diff --name-only | wc -l | tr -d ' ')" = "1"
           git diff --check
+          INPUT_HASH=$(sha256sum /tmp/seo-lease.json | awk '{print $1}')
+          OUTPUT_HASH=$(sha256sum /tmp/seo-worker-result.json | awk '{print $1}')
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          python - <<PY >/tmp/stage.json
+          import json
+          wr=json.load(open('/tmp/seo-worker-result.json'))
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"change_prepared","status":"completed","input_hash":"$INPUT_HASH","output_hash":"$OUTPUT_HASH","evidence":{"worker_result":wr}}))
+          PY
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/stage.json
           cat /tmp/seo-worker-result.json
 
       - name: Run all production safety gates locally
-        if: steps.lease.outputs.active == 'true'
+        if: steps.lease.outputs.active == 'true' && steps.lease.outputs.qa_passed_done != 'true'
+        shell: bash
         run: |
           set -euo pipefail
+          trap 'echo "{\"class\":\"HARD_BLOCK\",\"stage\":\"qa_passed\",\"message\":\"production safety gate failed\"}" > /tmp/failure.json' ERR
           node scripts/vercel-seo-guard.mjs --self-test
           node scripts/vercel-seo-guard.mjs --ci
           node scripts/seo-site-audit.mjs
           python scripts/seo_surface_sync.py --check
           node scripts/check-duke-media.mjs
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+            --data '{"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"qa_passed","status":"completed","evidence":{"all_local_safety_gates":true}}'
 
-      - name: Create isolated branch and pull request
+      - name: Create or recover isolated branch and pull request
         if: steps.lease.outputs.active == 'true'
         id: pr
         shell: bash
         run: |
           set -euo pipefail
-          RUN8=$(echo "${{ steps.lease.outputs.run_id }}" | cut -c1-8)
-          ATTEMPT="${{ steps.lease.outputs.attempt_no }}"
-          BRANCH="seo-auto-${RUN8}-a${ATTEMPT}"
+          trap 'echo "{\"class\":\"TRANSIENT\",\"stage\":\"pr_created\",\"message\":\"branch or pull request operation failed\"}" > /tmp/failure.json' ERR
+          BRANCH="${{ steps.recover.outputs.branch }}"
           git config user.name "readymaid-seo-worker"
           git config user.email "readymaid-seo-worker@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add -A
-          git commit -m "seo(auto): deterministic contextual relink"
-          git push origin "$BRANCH"
-          PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH"             --title "SEO auto: deterministic contextual relink"             --body "Server-side Auto SEO deterministic RELINK. One content file only. Existing protected-surface, sitemap, rendered and static gates remain mandatory.")
-          PR_NUMBER=$(gh pr view "$PR_URL" --repo "$REPO" --json number --jq .number)
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+
+          if ! git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            git checkout -b "$BRANCH"
+            git add -A
+            git commit -m "seo(auto): deterministic contextual relink"
+            COMMIT_SHA=$(git rev-parse HEAD)
+            git push origin "$BRANCH"
+            python - <<PY >/tmp/branch-stage.json
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"branch_created","status":"completed","branch_name":"$BRANCH","commit_sha":"$COMMIT_SHA","evidence":{"remote_verified":True}}))
+          PY
+            curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/branch-stage.json
+          else
+            git fetch origin "$BRANCH"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+          fi
+
+          PR_NUMBER=$(gh pr list --repo "$REPO" --head "$BRANCH" --state all --limit 1 --json number --jq '.[0].number // empty')
+          if [ -z "$PR_NUMBER" ]; then
+            PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
+              --title "SEO auto: deterministic contextual relink" \
+              --body "Server-side Auto SEO deterministic RELINK with exact-stage recovery. One content file only; all production safety gates remain mandatory.")
+            PR_NUMBER=$(gh pr view "$PR_URL" --repo "$REPO" --json number --jq .number)
+          fi
+          python - <<PY >/tmp/pr-stage.json
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"pr_created","status":"completed","branch_name":"$BRANCH","pr_number":int("$PR_NUMBER"),"evidence":{"remote_verified":True}}))
+          PY
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/pr-stage.json
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
-      - name: Run independent SEO Production Gate on branch
+      - name: Run or recover independent SEO Production Gate
         if: steps.lease.outputs.active == 'true'
         id: gate
         shell: bash
         run: |
           set -euo pipefail
           BRANCH="${{ steps.pr.outputs.branch }}"
-          gh workflow run seo-production-gate.yml --repo "$REPO" --ref "$BRANCH"
-          RUN_ID=""
-          for i in {1..30}; do
-            RUN_ID=$(gh run list --repo "$REPO" --workflow seo-production-gate.yml --branch "$BRANCH"               --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
-            [ -n "$RUN_ID" ] && break
-            sleep 5
-          done
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+
+          RUN_ID=$(gh run list --repo "$REPO" --workflow seo-production-gate.yml --branch "$BRANCH" \
+            --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+
+          if [ -z "$RUN_ID" ]; then
+            gh workflow run seo-production-gate.yml --repo "$REPO" --ref "$BRANCH"
+            for i in {1..30}; do
+              RUN_ID=$(gh run list --repo "$REPO" --workflow seo-production-gate.yml --branch "$BRANCH" \
+                --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+              [ -n "$RUN_ID" ] && break
+              sleep 5
+            done
+          fi
           [ -n "$RUN_ID" ]
           echo "gate_run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
           for i in {1..60}; do
             STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq .status)
             if [ "$STATUS" = "completed" ]; then
               CONCLUSION=$(gh run view "$RUN_ID" --repo "$REPO" --json conclusion --jq .conclusion)
-              test "$CONCLUSION" = "success"
+              if [ "$CONCLUSION" != "success" ]; then
+                echo '{"class":"HARD_BLOCK","stage":"ci_passed","message":"independent SEO Production Gate failed"}' > /tmp/failure.json
+                exit 1
+              fi
+              python - <<PY >/tmp/ci-stage.json
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"ci_passed","status":"completed","external_run_id":"$RUN_ID","evidence":{"conclusion":"success","remote_verified":True}}))
+          PY
+              curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/ci-stage.json
               exit 0
             fi
             sleep 10
           done
-          echo "SEO Production Gate timed out" >&2
+          echo '{"class":"WAITING_EXTERNAL","stage":"ci_passed","message":"CI still pending after worker wait window"}' > /tmp/failure.json
           exit 1
 
-      - name: Merge only after independent gate passes
+      - name: Merge once or recover existing merge
         if: steps.lease.outputs.active == 'true'
         id: merge
         shell: bash
         run: |
           set -euo pipefail
+          trap 'echo "{\"class\":\"TRANSIENT\",\"stage\":\"merged\",\"message\":\"merge verification failed\"}" > /tmp/failure.json' ERR
           PR="${{ steps.pr.outputs.pr_number }}"
-          gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
+          MERGED_AT=$(gh pr view "$PR" --repo "$REPO" --json mergedAt --jq '.mergedAt // empty')
+          if [ -z "$MERGED_AT" ]; then
+            gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
+          fi
           MERGE_SHA=$(gh pr view "$PR" --repo "$REPO" --json mergeCommit --jq '.mergeCommit.oid')
           test -n "$MERGE_SHA"
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          python - <<PY >/tmp/merge-stage.json
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"merged","status":"completed","pr_number":int("$PR"),"commit_sha":"$MERGE_SHA","evidence":{"remote_verified":True}}))
+          PY
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/merge-stage.json
           echo "merge_sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
 
-      - name: Verify live production contains the relink
+      - name: Verify deployment and live production without republishing
         if: steps.lease.outputs.active == 'true'
+        id: live
         shell: bash
         run: |
           set -euo pipefail
           SOURCE=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["source_url"])')
           TARGET=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["target_url"])')
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+
           for i in {1..45}; do
             if curl -fsS "https://readymaid.my${SOURCE}" | grep -F "href=\"${TARGET}\"" >/dev/null; then
+              python - <<PY >/tmp/deploy-stage.json
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"deployment_ready","status":"completed","commit_sha":"${{ steps.merge.outputs.merge_sha }}","evidence":{"live_http_observed":True}}))
+          PY
+              curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/deploy-stage.json
+              python - <<PY >/tmp/live-stage.json
+          import json
+          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"live_verified","status":"completed","commit_sha":"${{ steps.merge.outputs.merge_sha }}","evidence":{"source_url":"$SOURCE","target_url":"$TARGET","expected_link_present":True}}))
+          PY
+              curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/live-stage.json
               touch /tmp/live-verified
               exit 0
             fi
             sleep 15
           done
-          echo "Live production verification timed out" >&2
+          echo '{"class":"WAITING_EXTERNAL","stage":"live_verified","message":"live propagation not complete within worker wait window"}' > /tmp/failure.json
           exit 1
 
       - name: Reconcile PASS into the same Supabase run
@@ -195,28 +350,41 @@ jobs:
         run: |
           set -euo pipefail
           if [ -f /tmp/finalized ]; then exit 0; fi
-          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+            --data '{"action":"stage_state","run_id":"${{ steps.lease.outputs.run_id }}"}' > /tmp/stage-state.json || true
+
           python - <<'PY' >/tmp/fail.json
           import json, os
-          ev={"protected_surface_ok": True}
+          ev={"protected_surface_ok":True}
           if os.path.exists('/tmp/seo-worker-result.json'):
               ev.update(json.load(open('/tmp/seo-worker-result.json')))
+          failure={"class":"TRANSIENT","stage":"change_prepared","message":"worker failed before reconciliation"}
+          if os.path.exists('/tmp/failure.json'):
+              failure.update(json.load(open('/tmp/failure.json')))
+          if os.path.exists('/tmp/stage-state.json'):
+              try:
+                  st=json.load(open('/tmp/stage-state.json'))
+                  ev["resume_from"]=st.get("resume_from")
+              except Exception:
+                  pass
           pr_number="${{ steps.pr.outputs.pr_number }}"
           merge_sha="${{ steps.merge.outputs.merge_sha }}"
           gate_run_id="${{ steps.gate.outputs.gate_run_id }}"
-          if pr_number.isdigit():
-              ev["pr_number"]=int(pr_number)
-          if merge_sha:
-              ev["merge_sha"]=merge_sha
-          if gate_run_id:
-              ev["gate_run_id"]=gate_run_id
+          if pr_number.isdigit(): ev["pr_number"]=int(pr_number)
+          if merge_sha: ev["merge_sha"]=merge_sha
+          if gate_run_id: ev["gate_run_id"]=gate_run_id
           ev["live_verified"]=os.path.exists('/tmp/live-verified')
           print(json.dumps({
             "action":"finalize",
             "run_id":"${{ steps.lease.outputs.run_id }}",
             "result":"blocked",
-            "error_message":"GitHub Actions deterministic SEO worker failed before complete GitHub/live reconciliation.",
+            "failure_class":failure["class"],
+            "stage":failure["stage"],
+            "error_message":failure["message"],
             "evidence":ev
           }))
           PY
-          curl -fsS -X POST "$BROKER_URL"             -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json"             --data-binary @/tmp/fail.json || true
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/fail.json || true
+

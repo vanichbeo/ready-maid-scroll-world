@@ -80,7 +80,7 @@ jobs:
               f.write(f"resume_from={d.get('resume_from','change_prepared')}\n")
               for s in ['change_prepared','qa_passed','branch_created','pr_created','ci_passed','merged','deployment_ready','live_verified','reconciled']:
                   f.write(f"{s}_done={'true' if stages.get(s,{}).get('status')=='completed' else 'false'}\n")
-              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') == 'RELINK'
+              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE')
               f.write(f"active={'true' if active else 'false'}\n")
           PY
 
@@ -147,7 +147,7 @@ jobs:
 
           if [ -f /tmp/seo-worker-result.json ]; then echo "has_result=true" >> "$GITHUB_OUTPUT"; else echo "has_result=false" >> "$GITHUB_OUTPUT"; fi
 
-      - name: Prepare one deterministic RELINK change
+      - name: Prepare one deterministic SEO change
         if: steps.lease.outputs.active == 'true' && steps.recover.outputs.has_result != 'true'
         shell: bash
         run: |
@@ -204,7 +204,8 @@ jobs:
           if ! git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
             git checkout -b "$BRANCH"
             git add -A
-            git commit -m "seo(auto): deterministic contextual relink"
+            ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action","SEO"))')
+            git commit -m "seo(auto): deterministic ${ACTION,,}"
             COMMIT_SHA=$(git rev-parse HEAD)
             git push origin "$BRANCH"
             python - <<PY >/tmp/branch-stage.json
@@ -219,9 +220,10 @@ jobs:
 
           PR_NUMBER=$(gh pr list --repo "$REPO" --head "$BRANCH" --state all --limit 1 --json number --jq '.[0].number // empty')
           if [ -z "$PR_NUMBER" ]; then
+            ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action","SEO"))')
             PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
-              --title "SEO auto: deterministic contextual relink" \
-              --body "Server-side Auto SEO deterministic RELINK with exact-stage recovery. One content file only; all production safety gates remain mandatory.")
+              --title "SEO auto: deterministic ${ACTION}" \
+              --body "Server-side Auto SEO deterministic ${ACTION} with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory.")
             PR_NUMBER=$(gh pr view "$PR_URL" --repo "$REPO" --json number --jq .number)
           fi
           python - <<PY >/tmp/pr-stage.json
@@ -371,10 +373,38 @@ jobs:
           PY
           curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/deploy-stage.json
 
+          ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action",""))')
           for i in {1..45}; do
-            if curl -fsS "https://readymaid.my${SOURCE}" | grep -F "href=\"${TARGET}\"" >/dev/null; then
+            curl -fsS "https://readymaid.my${SOURCE}" > /tmp/live-page.html || true
+            LIVE_OK=false
+
+            if [ "$ACTION" = "RELINK" ]; then
+              if grep -F "href=\"${TARGET}\"" /tmp/live-page.html >/dev/null; then
+                LIVE_OK=true
+              fi
+            elif [ "$ACTION" = "UPDATE" ]; then
+              python - <<'PY' && LIVE_OK=true || LIVE_OK=false
+          import html, json, re, sys
+          x=json.load(open('/tmp/seo-worker-result.json'))
+          page=open('/tmp/live-page.html',encoding='utf-8').read()
+          title=x.get('expected_title')
+          desc=x.get('expected_meta_description')
+          if title:
+              m=re.search(r'<title>(.*?)</title>',page,re.I|re.S)
+              if not m or html.unescape(re.sub(r'\\s+',' ',m.group(1))).strip()!=title:
+                  sys.exit(1)
+          if desc:
+              m=re.search(r'<meta\\s+name=["\\']description["\\']\\s+content=["\\']([^"\\']*)["\\']\\s*/?>',page,re.I)
+              if not m or html.unescape(m.group(1)).strip()!=desc:
+                  sys.exit(1)
+          sys.exit(0)
+          PY
+            fi
+
+            if [ "$LIVE_OK" = "true" ]; then
               python - <<PY >/tmp/live-stage.json
           import json
+          x=json.load(open('/tmp/seo-worker-result.json'))
           print(json.dumps({
             "action":"checkpoint",
             "run_id":"${{ steps.lease.outputs.run_id }}",
@@ -385,7 +415,11 @@ jobs:
             "evidence":{
               "source_url":"$SOURCE",
               "target_url":"$TARGET",
-              "expected_link_present":True,
+              "verify_kind":x.get("verify_kind"),
+              "expected_link_present":x.get("action")=="RELINK",
+              "update_verified":x.get("action")=="UPDATE",
+              "expected_title":x.get("expected_title"),
+              "expected_meta_description":x.get("expected_meta_description"),
               "deployment_url":"$DEPLOYMENT_URL",
               "exact_merge_sha_verified":True
             }
@@ -399,7 +433,7 @@ jobs:
             fi
             sleep 15
           done
-          echo '{"class":"WAITING_EXTERNAL","stage":"live_verified","message":"exact-SHA production deployment exists but live alias/content propagation is not complete"}' > /tmp/failure.json
+          echo '{"class":"WAITING_EXTERNAL","stage":"live_verified","message":"exact-SHA production deployment exists but expected live change is not yet observable"}' > /tmp/failure.json
           exit 1
 
       - name: Controlled fault before final reconciliation
@@ -435,6 +469,10 @@ jobs:
               "static_qa":True,
               "protected_surface_ok":True,
               "live_verified":True,
+              "action":x.get("action"),
+              "update_verified":x.get("action")=="UPDATE",
+              "expected_title":x.get("expected_title"),
+              "expected_meta_description":x.get("expected_meta_description"),
               "sitemap_verified":True,
               "sitemap_url":"https://readymaid.my/sitemap.xml",
               "sitemap_target":"https://readymaid.my"+x["target_url"],

@@ -98,7 +98,7 @@ function updateMetadata() {
     const tags = [...updated.matchAll(/<meta\b[^>]*>/gi)];
     const match = tags.find((m) => {
       const attrs = Object.fromEntries(
-        [...m[0].matchAll(/([:\\w-]+)\\s*=\\s*(["'])(.*?)\\2/gis)].map((x) => [x[1].toLowerCase(), x[3]])
+        [...m[0].matchAll(/([:\w-]+)\s*=\s*(["'])(.*?)\2/gis)].map((x) => [x[1].toLowerCase(), x[3]])
       );
       return String(attrs.name || "").toLowerCase() === "description";
     });

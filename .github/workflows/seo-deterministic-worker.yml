@@ -416,6 +416,14 @@ jobs:
         run: |
           set -euo pipefail
           TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
+          TARGET=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["target_url"])')
+          SITEMAP_URL="https://readymaid.my/sitemap.xml"
+          SITEMAP_CANONICAL="https://readymaid.my${TARGET}"
+          if ! curl -fsS "$SITEMAP_URL" | grep -F "<loc>${SITEMAP_CANONICAL}</loc>" >/dev/null; then
+            echo '{"class":"INCONSISTENT","stage":"reconciled","message":"live sitemap is stale or missing the reconciled target URL"}' > /tmp/failure.json
+            exit 1
+          fi
+
           python - <<'PY' >/tmp/finalize.json
           import json
           x=json.load(open('/tmp/seo-worker-result.json'))
@@ -427,6 +435,9 @@ jobs:
               "static_qa":True,
               "protected_surface_ok":True,
               "live_verified":True,
+              "sitemap_verified":True,
+              "sitemap_url":"https://readymaid.my/sitemap.xml",
+              "sitemap_target":"https://readymaid.my"+x["target_url"],
               "pr_number":int("${{ steps.pr.outputs.pr_number }}"),
               "merge_sha":"${{ steps.merge.outputs.merge_sha }}",
               "gate_run_id":"${{ steps.gate.outputs.gate_run_id }}",

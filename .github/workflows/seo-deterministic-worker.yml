@@ -323,24 +323,83 @@ jobs:
           TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
 
+          MERGE_SHA="${{ steps.merge.outputs.merge_sha }}"
+          DEPLOYMENT_ID=""
+          DEPLOYMENT_URL=""
+
+          # Authoritative deployment identity gate: require the successful
+          # production deployment recorded by the Vercel GitHub integration
+          # to belong to this exact merge SHA before live verification.
+          for i in {1..45}; do
+            DEPLOYMENTS=$(gh api --method GET "repos/$REPO/deployments?sha=$MERGE_SHA&per_page=50")
+            DEPLOYMENT_ID=$(echo "$DEPLOYMENTS" | jq -r '
+              [.[] | select(((.environment // "") | ascii_downcase) == "production")]
+              | sort_by(.created_at) | last | .id // empty
+            ')
+            if [ -n "$DEPLOYMENT_ID" ]; then
+              STATUSES=$(gh api --method GET "repos/$REPO/deployments/$DEPLOYMENT_ID/statuses?per_page=50")
+              DEPLOYMENT_URL=$(echo "$STATUSES" | jq -r '
+                [.[] | select(.state == "success")] | sort_by(.created_at) | last
+                | (.environment_url // .target_url // empty)
+              ')
+              [ -n "$DEPLOYMENT_URL" ] && break
+            fi
+            sleep 15
+          done
+
+          if [ -z "$DEPLOYMENT_ID" ] || [ -z "$DEPLOYMENT_URL" ]; then
+            echo '{"class":"WAITING_EXTERNAL","stage":"deployment_ready","message":"no successful production deployment found for exact merge SHA"}' > /tmp/failure.json
+            exit 1
+          fi
+
+          python - <<PY >/tmp/deploy-stage.json
+          import json
+          print(json.dumps({
+            "action":"checkpoint",
+            "run_id":"${{ steps.lease.outputs.run_id }}",
+            "stage":"deployment_ready",
+            "status":"completed",
+            "commit_sha":"$MERGE_SHA",
+            "deployment_id":"$DEPLOYMENT_ID",
+            "evidence":{
+              "provider":"vercel_github_deployment",
+              "production_environment":True,
+              "exact_merge_sha_verified":True,
+              "deployment_url":"$DEPLOYMENT_URL"
+            }
+          }))
+          PY
+          curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/deploy-stage.json
+
           for i in {1..45}; do
             if curl -fsS "https://readymaid.my${SOURCE}" | grep -F "href=\"${TARGET}\"" >/dev/null; then
-              python - <<PY >/tmp/deploy-stage.json
-          import json
-          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"deployment_ready","status":"completed","commit_sha":"${{ steps.merge.outputs.merge_sha }}","evidence":{"live_http_observed":True}}))
-          PY
-              curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/deploy-stage.json
               python - <<PY >/tmp/live-stage.json
           import json
-          print(json.dumps({"action":"checkpoint","run_id":"${{ steps.lease.outputs.run_id }}","stage":"live_verified","status":"completed","commit_sha":"${{ steps.merge.outputs.merge_sha }}","evidence":{"source_url":"$SOURCE","target_url":"$TARGET","expected_link_present":True}}))
+          print(json.dumps({
+            "action":"checkpoint",
+            "run_id":"${{ steps.lease.outputs.run_id }}",
+            "stage":"live_verified",
+            "status":"completed",
+            "commit_sha":"$MERGE_SHA",
+            "deployment_id":"$DEPLOYMENT_ID",
+            "evidence":{
+              "source_url":"$SOURCE",
+              "target_url":"$TARGET",
+              "expected_link_present":True,
+              "deployment_url":"$DEPLOYMENT_URL",
+              "exact_merge_sha_verified":True
+            }
+          }))
           PY
               curl -fsS -X POST "$BROKER_URL" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/live-stage.json
               touch /tmp/live-verified
+              echo "deployment_id=$DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
+              echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             sleep 15
           done
-          echo '{"class":"WAITING_EXTERNAL","stage":"live_verified","message":"live propagation not complete within worker wait window"}' > /tmp/failure.json
+          echo '{"class":"WAITING_EXTERNAL","stage":"live_verified","message":"exact-SHA production deployment exists but live alias/content propagation is not complete"}' > /tmp/failure.json
           exit 1
 
       - name: Controlled fault before final reconciliation

@@ -95,9 +95,15 @@ function updateMetadata() {
     updated = updated.replace(/<title>[\s\S]*?<\/title>/i, `<title>${esc(title)}</title>`);
   }
   if (description) {
-    const metaRe = /<meta\s+name=["']description["']\s+content=["'][^"']*["']\s*\/?>/i;
-    if (!metaRe.test(updated)) throw new Error("Target page has no meta description");
-    updated = updated.replace(metaRe, `<meta name="description" content="${esc(description)}">`);
+    const tags = [...updated.matchAll(/<meta\b[^>]*>/gi)];
+    const match = tags.find((m) => {
+      const attrs = Object.fromEntries(
+        [...m[0].matchAll(/([:\w-]+)\s*=\s*(["'])(.*?)\2/gis)].map((x) => [x[1].toLowerCase(), x[3]])
+      );
+      return String(attrs.name || "").toLowerCase() === "description";
+    });
+    if (!match) throw new Error("Target page has no meta description");
+    updated = updated.replace(match[0], `<meta name="description" content="${esc(description)}">`);
   }
   if (updated === before) throw new Error("UPDATE produced no diff");
 

@@ -391,12 +391,12 @@ jobs:
           desc=x.get('expected_meta_description')
           if title:
               m=re.search(r'<title>(.*?)</title>',page,re.I|re.S)
-              if not m or html.unescape(re.sub(r'\\s+',' ',m.group(1))).strip()!=title:
+              if not m or html.unescape(re.sub(r'\s+',' ',m.group(1))).strip()!=title:
                   sys.exit(1)
           if desc:
               found=None
-              for tag in re.findall(r'<meta\\b[^>]*>',page,re.I):
-                  attrs={k.lower():v for k,_,v in re.findall(r'([:\\w-]+)\\s*=\\s*(["\\'])(.*?)\\2',tag,re.I|re.S)}
+              for tag in re.findall(r'<meta\b[^>]*>',page,re.I):
+                  attrs={k.lower():v for k,_,v in re.findall(r'([:\w-]+)\s*=\s*(["\'])(.*?)\2',tag,re.I|re.S)}
                   if attrs.get('name','').lower()=='description':
                       found=html.unescape(attrs.get('content','')).strip()
                       break

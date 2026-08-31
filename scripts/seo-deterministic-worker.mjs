@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 
 const args = process.argv.slice(2);
 const value = (name) => {
@@ -126,7 +127,14 @@ function updateMetadata() {
 let result;
 if (action === "RELINK") result = relink();
 else if (action === "UPDATE") result = updateMetadata();
-else throw new Error(`Unsupported action: ${action}`);
+else if (action === "CREATE") {
+  execFileSync(process.execPath,[
+    "scripts/seo-create-worker.mjs",
+    "--lease",leasePath,
+    "--out",outPath
+  ],{stdio:"inherit"});
+  result=JSON.parse(fs.readFileSync(outPath,"utf8"));
+} else throw new Error(`Unsupported action: ${action}`);
 
-fs.writeFileSync(outPath, JSON.stringify(result, null, 2) + "\n", "utf8");
+if (action !== "CREATE") fs.writeFileSync(outPath, JSON.stringify(result, null, 2) + "\n", "utf8");
 console.log(JSON.stringify(result));

@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 35
     env:
       REPO: vanichbeo/ready-maid-scroll-world
-      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker
+      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker-phase3f-test-v1
       OIDC_AUD: readymaid-seo-worker
       GH_TOKEN: ${{ github.token }}
       FAULT_STAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.fault_stage || 'none' }}
@@ -77,7 +77,7 @@ jobs:
               f.write(f"resume_from={d.get('resume_from','change_prepared')}\n")
               for s in ['change_prepared','qa_passed','branch_created','pr_created','ci_passed','merged','deployment_ready','live_verified','reconciled']:
                   f.write(f"{s}_done={'true' if stages.get(s,{}).get('status')=='completed' else 'false'}\n")
-              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE')
+              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE','CREATE')
               f.write(f"active={'true' if active else 'false'}\n")
           PY
 
@@ -151,7 +151,14 @@ jobs:
           set -euo pipefail
           trap 'echo "{\"class\":\"TRANSIENT\",\"stage\":\"change_prepared\",\"message\":\"change preparation failed\"}" > /tmp/failure.json' ERR
           node scripts/seo-deterministic-worker.mjs --lease /tmp/seo-lease.json --out /tmp/seo-worker-result.json
-          test "$(git diff --name-only | wc -l | tr -d ' ')" = "1"
+          ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action",""))')
+          CHANGED=$(git diff --name-only | wc -l | tr -d ' ')
+          if [ "$ACTION" = "CREATE" ]; then
+            test "$CHANGED" = "3"
+            python scripts/seo_surface_sync.py --check
+          else
+            test "$CHANGED" = "1"
+          fi
           git diff --check
           INPUT_HASH=$(sha256sum /tmp/seo-lease.json | awk '{print $1}')
           OUTPUT_HASH=$(sha256sum /tmp/seo-worker-result.json | awk '{print $1}')
@@ -350,7 +357,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SOURCE=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["source_url"])')
+          SOURCE=$(python -c 'import json; d=json.load(open("/tmp/seo-worker-result.json")); print(d.get("source_url") or d["target_url"])')
           TARGET=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["target_url"])')
           TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
@@ -434,6 +441,30 @@ jobs:
                   sys.exit(1)
           sys.exit(0)
           PY
+            elif [ "$ACTION" = "CREATE" ]; then
+              python - <<'PY' && LIVE_OK=true || LIVE_OK=false
+          import html, json, re, sys
+          x=json.load(open('/tmp/seo-worker-result.json'))
+          page=open('/tmp/live-page.html',encoding='utf-8').read()
+          def text_between(pattern):
+              m=re.search(pattern,page,re.I|re.S)
+              return html.unescape(re.sub(r'\s+',' ',m.group(1))).strip() if m else None
+          if text_between(r'<title>(.*?)</title>') != x.get('expected_title'):
+              sys.exit(1)
+          if text_between(r'<h1[^>]*>(.*?)</h1>') != x.get('expected_h1'):
+              sys.exit(1)
+          found=None
+          for tag in re.findall(r'<meta\b[^>]*>',page,re.I):
+              attrs={k.lower():v for k,_,v in re.findall(r'([:\w-]+)\s*=\s*(["\'])(.*?)\2',tag,re.I|re.S)}
+              if attrs.get('name','').lower()=='description':
+                  found=html.unescape(attrs.get('content','')).strip()
+                  break
+          if found != x.get('expected_meta_description'):
+              sys.exit(1)
+          if f'href="{x.get("expected_cta_target")}"' not in page:
+              sys.exit(1)
+          sys.exit(0)
+          PY
             fi
 
             if [ "$LIVE_OK" = "true" ]; then
@@ -453,8 +484,13 @@ jobs:
               "verify_kind":x.get("verify_kind"),
               "expected_link_present":x.get("action")=="RELINK",
               "update_verified":x.get("action")=="UPDATE",
+              "create_verified":x.get("action")=="CREATE",
               "expected_title":x.get("expected_title"),
               "expected_meta_description":x.get("expected_meta_description"),
+              "expected_h1":x.get("expected_h1"),
+              "expected_cta_target":x.get("expected_cta_target"),
+              "contract_hash":x.get("contract_hash"),
+              "output_sha256":x.get("output_sha256"),
               "deployment_url":"$DEPLOYMENT_URL",
               "exact_merge_sha_verified":True
             }
@@ -512,8 +548,13 @@ jobs:
               "live_verified":True,
               "action":x.get("action"),
               "update_verified":x.get("action")=="UPDATE",
+              "create_verified":x.get("action")=="CREATE",
               "expected_title":x.get("expected_title"),
               "expected_meta_description":x.get("expected_meta_description"),
+              "expected_h1":x.get("expected_h1"),
+              "expected_cta_target":x.get("expected_cta_target"),
+              "contract_hash":x.get("contract_hash"),
+              "output_sha256":x.get("output_sha256"),
               "sitemap_required":os.environ.get("SITEMAP_REQUIRED")=="true",
               "sitemap_verified":os.environ.get("SITEMAP_VERIFIED")=="true",
               "sitemap_url":"https://readymaid.my/sitemap.xml",
@@ -521,10 +562,10 @@ jobs:
               "pr_number":int("${{ steps.pr.outputs.pr_number }}"),
               "merge_sha":"${{ steps.merge.outputs.merge_sha }}",
               "gate_run_id":"${{ steps.gate.outputs.gate_run_id }}",
-              "source_url":x["source_url"],
+              "source_url":x.get("source_url") or x["target_url"],
               "target_url":x["target_url"],
-              "anchor_text":x["anchor_text"],
-              "source_file":x["source_file"]
+              "anchor_text":x.get("anchor_text",""),
+              "source_file":x.get("source_file") or x.get("target_file")
             }
           }
           print(json.dumps(payload))

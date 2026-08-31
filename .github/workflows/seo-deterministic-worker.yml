@@ -542,13 +542,19 @@ jobs:
           if merge_sha: ev["merge_sha"]=merge_sha
           if gate_run_id: ev["gate_run_id"]=gate_run_id
           ev["live_verified"]=os.path.exists('/tmp/live-verified')
+          external_error=str(failure.get("external_error") or "").strip()
+          if external_error:
+              ev["external_error"]=external_error
+          error_message=str(failure["message"])
+          if external_error:
+              error_message=f"{error_message}: {external_error}"[:4000]
           print(json.dumps({
             "action":"finalize",
             "run_id":"${{ steps.lease.outputs.run_id }}",
             "result":"blocked",
             "failure_class":failure["class"],
             "stage":failure["stage"],
-            "error_message":failure["message"],
+            "error_message":error_message,
             "evidence":ev
           }))
           PY

@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 35
     env:
       REPO: vanichbeo/ready-maid-scroll-world
-      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker-phase2a-test-v3
+      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker
       OIDC_AUD: readymaid-seo-worker
       GH_TOKEN: ${{ github.token }}
       FAULT_STAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.fault_stage || 'none' }}

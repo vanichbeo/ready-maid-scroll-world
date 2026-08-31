@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 35
     env:
       REPO: vanichbeo/ready-maid-scroll-world
-      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker-phase2a-test-v2
+      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker
       OIDC_AUD: readymaid-seo-worker
       GH_TOKEN: ${{ github.token }}
       FAULT_STAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.fault_stage || 'none' }}
@@ -488,13 +488,19 @@ jobs:
           TARGET=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["target_url"])')
           SITEMAP_URL="https://readymaid.my/sitemap.xml"
           SITEMAP_CANONICAL="https://readymaid.my${TARGET}"
-          if ! curl -fsS "$SITEMAP_URL" | grep -F "<loc>${SITEMAP_CANONICAL}</loc>" >/dev/null; then
-            echo '{"class":"INCONSISTENT","stage":"reconciled","message":"live sitemap is stale or missing the reconciled target URL"}' > /tmp/failure.json
-            exit 1
+          SITEMAP_REQUIRED=$(python -c 'import json; d=json.load(open("/tmp/seo-lease.json")); print("true" if d.get("target_in_sitemap") is True else "false")')
+          SITEMAP_VERIFIED=false
+          if [ "$SITEMAP_REQUIRED" = "true" ]; then
+            if ! curl -fsS "$SITEMAP_URL" | grep -F "<loc>${SITEMAP_CANONICAL}</loc>" >/dev/null; then
+              echo '{"class":"INCONSISTENT","stage":"reconciled","message":"live sitemap is stale or missing the reconciled target URL"}' > /tmp/failure.json
+              exit 1
+            fi
+            SITEMAP_VERIFIED=true
           fi
+          export SITEMAP_REQUIRED SITEMAP_VERIFIED
 
           python - <<'PY' >/tmp/finalize.json
-          import json
+          import json, os
           x=json.load(open('/tmp/seo-worker-result.json'))
           payload={
             "action":"finalize",
@@ -508,7 +514,8 @@ jobs:
               "update_verified":x.get("action")=="UPDATE",
               "expected_title":x.get("expected_title"),
               "expected_meta_description":x.get("expected_meta_description"),
-              "sitemap_verified":True,
+              "sitemap_required":os.environ.get("SITEMAP_REQUIRED")=="true",
+              "sitemap_verified":os.environ.get("SITEMAP_VERIFIED")=="true",
               "sitemap_url":"https://readymaid.my/sitemap.xml",
               "sitemap_target":"https://readymaid.my"+x["target_url"],
               "pr_number":int("${{ steps.pr.outputs.pr_number }}"),

@@ -77,7 +77,7 @@ jobs:
               f.write(f"resume_from={d.get('resume_from','change_prepared')}\n")
               for s in ['change_prepared','qa_passed','branch_created','pr_created','ci_passed','merged','deployment_ready','live_verified','reconciled']:
                   f.write(f"{s}_done={'true' if stages.get(s,{}).get('status')=='completed' else 'false'}\n")
-              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE')
+              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE','CREATE')
               f.write(f"active={'true' if active else 'false'}\n")
           PY
 
@@ -155,6 +155,20 @@ jobs:
           CHANGED=$(git status --porcelain | wc -l | tr -d ' ')
           if [ "$ACTION" = "CREATE" ]; then
             test "$CHANGED" = "3"
+            python - <<'PY'
+import json, subprocess, sys
+x=json.load(open('/tmp/seo-worker-result.json'))
+expected=set(x.get('surface_files') or [])
+actual=set()
+for line in subprocess.check_output(['git','status','--porcelain'],text=True).splitlines():
+    p=line[3:]
+    if ' -> ' in p:
+        p=p.split(' -> ',1)[1]
+    actual.add(p)
+if len(expected)!=3 or actual!=expected:
+    print(json.dumps({"expected":sorted(expected),"actual":sorted(actual)}))
+    sys.exit(1)
+PY
             python scripts/seo_surface_sync.py --check
           else
             test "$CHANGED" = "1"
@@ -232,7 +246,7 @@ jobs:
             "run_id":"${{ steps.lease.outputs.run_id }}",
             "branch_name":"$BRANCH",
             "title":"SEO auto: deterministic $ACTION",
-            "body":"Server-side Auto SEO deterministic $ACTION with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory."
+            "body":"Server-side Auto SEO deterministic $ACTION with exact-stage recovery. RELINK/UPDATE may change one bounded file; guide CREATE may change exactly the generated guide, guides/index.html and sitemap.xml. All production safety and reconciliation gates remain mandatory."
           }))
           PY
             HTTP_CODE=$(curl -sS -o /tmp/create-pr-response.json -w '%{http_code}' -X POST "$BROKER_URL" \
@@ -462,6 +476,31 @@ jobs:
           if found != x.get('expected_meta_description'):
               sys.exit(1)
           if f'href="{x.get("expected_cta_target")}"' not in page:
+              sys.exit(1)
+          canonical_expected="https://readymaid.my"+x["target_url"]
+          canonical_found=None
+          for tag in re.findall(r'<link\\b[^>]*>',page,re.I):
+              attrs={k.lower():v for k,_,v in re.findall(r'([:\\w-]+)\\s*=\\s*(["\\'])(.*?)\\2',tag,re.I|re.S)}
+              if attrs.get('rel','').lower()=='canonical':
+                  canonical_found=html.unescape(attrs.get('href','')).strip()
+                  break
+          if canonical_found!=canonical_expected:
+              sys.exit(1)
+          import json as _json
+          found_types=set()
+          def collect(v):
+              if isinstance(v,dict):
+                  t=v.get('@type')
+                  if isinstance(t,str): found_types.add(t)
+                  elif isinstance(t,list):
+                      found_types.update(x for x in t if isinstance(x,str))
+                  for vv in v.values(): collect(vv)
+              elif isinstance(v,list):
+                  for vv in v: collect(vv)
+          for raw in re.findall(r'<script[^>]+type=["\\']application/ld\\+json["\\'][^>]*>(.*?)</script>',page,re.I|re.S):
+              try: collect(_json.loads(html.unescape(raw.strip())))
+              except Exception: sys.exit(1)
+          if not set(x.get('schema_types') or []).issubset(found_types):
               sys.exit(1)
           sys.exit(0)
           PY

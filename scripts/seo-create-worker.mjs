@@ -30,7 +30,7 @@ const result=JSON.parse(fs.readFileSync(renderResultPath,"utf8"));
 const c=envelope.contract;
 const slug=String(c.slug||"");
 const canonical=`https://readymaid.my${slug}`;
-if(c.page_type!=="guide") throw new Error("Phase 3F isolated CREATE supports guide surface sync only");
+if(c.page_type!=="guide") throw new Error("CREATE v1 supports guide surface sync only");
 
 const hubPath="guides/index.html";
 const sitemapPath="sitemap.xml";

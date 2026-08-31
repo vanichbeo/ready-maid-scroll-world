@@ -1,7 +1,0 @@
-# Protected Ready Maid production surfaces
-/index.html @vanichbeo
-/script.js @vanichbeo
-/vercel.json @vanichbeo
-/config/meet-duke-baseline.json @vanichbeo
-/scripts/vercel-seo-guard.mjs @vanichbeo
-/.github/workflows/seo-production-gate.yml @vanichbeo

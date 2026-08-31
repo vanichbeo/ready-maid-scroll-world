@@ -152,7 +152,7 @@ jobs:
           trap 'echo "{\"class\":\"TRANSIENT\",\"stage\":\"change_prepared\",\"message\":\"change preparation failed\"}" > /tmp/failure.json' ERR
           node scripts/seo-deterministic-worker.mjs --lease /tmp/seo-lease.json --out /tmp/seo-worker-result.json
           ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action",""))')
-          CHANGED=$(git diff --name-only | wc -l | tr -d ' ')
+          CHANGED=$(git status --porcelain | wc -l | tr -d ' ')
           if [ "$ACTION" = "CREATE" ]; then
             test "$CHANGED" = "3"
             python scripts/seo_surface_sync.py --check

@@ -260,14 +260,18 @@ jobs:
           TOKEN=$(curl -fsS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUD}" | python -c 'import json,sys; print(json.load(sys.stdin)["value"])')
 
+          HEAD_SHA=$(git ls-remote origin "refs/heads/$BRANCH" | awk '{print $1}')
+          test -n "$HEAD_SHA"
           RUN_ID=$(gh run list --repo "$REPO" --workflow seo-production-gate.yml --branch "$BRANCH" \
-            --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            --event workflow_dispatch --limit 20 --json databaseId,headSha \
+            --jq 'map(select(.headSha == "'"$HEAD_SHA"'")) | .[0].databaseId // empty')
 
           if [ -z "$RUN_ID" ]; then
             gh workflow run seo-production-gate.yml --repo "$REPO" --ref "$BRANCH"
             for i in {1..30}; do
               RUN_ID=$(gh run list --repo "$REPO" --workflow seo-production-gate.yml --branch "$BRANCH" \
-                --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+                --event workflow_dispatch --limit 20 --json databaseId,headSha \
+                --jq 'map(select(.headSha == "'"$HEAD_SHA"'")) | .[0].databaseId // empty')
               [ -n "$RUN_ID" ] && break
               sleep 5
             done

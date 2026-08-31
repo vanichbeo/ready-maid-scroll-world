@@ -221,9 +221,24 @@ jobs:
           PR_NUMBER=$(gh pr list --repo "$REPO" --head "$BRANCH" --state all --limit 1 --json number --jq '.[0].number // empty')
           if [ -z "$PR_NUMBER" ]; then
             ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action","SEO"))')
-            PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
+            if ! PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
               --title "SEO auto: deterministic ${ACTION}" \
-              --body "Server-side Auto SEO deterministic ${ACTION} with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory.")
+              --body "Server-side Auto SEO deterministic ${ACTION} with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory." \
+              2>/tmp/pr-create.err); then
+              python - <<'PY' >/tmp/failure.json
+          import json
+          from pathlib import Path
+          err=Path('/tmp/pr-create.err').read_text(errors='replace').strip()
+          print(json.dumps({
+            "class":"TRANSIENT",
+            "stage":"pr_created",
+            "message":"GitHub PR creation failed",
+            "external_error":err[-4000:] if err else "unknown GitHub CLI error"
+          }))
+          PY
+              cat /tmp/pr-create.err >&2 || true
+              exit 1
+            fi
             PR_NUMBER=$(gh pr view "$PR_URL" --repo "$REPO" --json number --jq .number)
           fi
           python - <<PY >/tmp/pr-stage.json
@@ -527,13 +542,19 @@ jobs:
           if merge_sha: ev["merge_sha"]=merge_sha
           if gate_run_id: ev["gate_run_id"]=gate_run_id
           ev["live_verified"]=os.path.exists('/tmp/live-verified')
+          external_error=str(failure.get("external_error") or "").strip()
+          if external_error:
+              ev["external_error"]=external_error
+          error_message=str(failure["message"])
+          if external_error:
+              error_message=f"{error_message}: {external_error}"[:4000]
           print(json.dumps({
             "action":"finalize",
             "run_id":"${{ steps.lease.outputs.run_id }}",
             "result":"blocked",
             "failure_class":failure["class"],
             "stage":failure["stage"],
-            "error_message":failure["message"],
+            "error_message":error_message,
             "evidence":ev
           }))
           PY

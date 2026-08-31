@@ -26,6 +26,8 @@ jobs:
         run: node scripts/seo-update-worker-selftest.mjs
       - name: Prove deterministic SEO CREATE renderer
         run: node scripts/seo-create-renderer.mjs --self-test
+      - name: Prove minimal deterministic SEO REDIRECT executor
+        run: node scripts/seo-redirect-worker.mjs --self-test
       - name: Prove Meet DUKE guard rejects injected regressions
         run: node scripts/vercel-seo-guard.mjs --self-test
       - name: Verify cryptographic Meet DUKE baseline

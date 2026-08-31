@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 35
     env:
       REPO: vanichbeo/ready-maid-scroll-world
-      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker-phase3f-test-v1
+      BROKER_URL: https://mgefvmzxfjqgtnpfgqgm.supabase.co/functions/v1/seo-github-worker-broker
       OIDC_AUD: readymaid-seo-worker
       GH_TOKEN: ${{ github.token }}
       FAULT_STAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.fault_stage || 'none' }}
@@ -77,7 +77,7 @@ jobs:
               f.write(f"resume_from={d.get('resume_from','change_prepared')}\n")
               for s in ['change_prepared','qa_passed','branch_created','pr_created','ci_passed','merged','deployment_ready','live_verified','reconciled']:
                   f.write(f"{s}_done={'true' if stages.get(s,{}).get('status')=='completed' else 'false'}\n")
-              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE','CREATE')
+              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE')
               f.write(f"active={'true' if active else 'false'}\n")
           PY
 

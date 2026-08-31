@@ -218,25 +218,39 @@ jobs:
           PR_NUMBER=$(gh pr list --repo "$REPO" --head "$BRANCH" --state all --limit 1 --json number --jq '.[0].number // empty')
           if [ -z "$PR_NUMBER" ]; then
             ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action","SEO"))')
-            if ! PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
-              --title "SEO auto: deterministic ${ACTION}" \
-              --body "Server-side Auto SEO deterministic ${ACTION} with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory." \
-              2>/tmp/pr-create.err); then
+            python - <<PY >/tmp/create-pr.json
+          import json
+          print(json.dumps({
+            "action":"create_pr",
+            "run_id":"${{ steps.lease.outputs.run_id }}",
+            "branch_name":"$BRANCH",
+            "title":"SEO auto: deterministic $ACTION",
+            "body":"Server-side Auto SEO deterministic $ACTION with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory."
+          }))
+          PY
+            HTTP_CODE=$(curl -sS -o /tmp/create-pr-response.json -w '%{http_code}' -X POST "$BROKER_URL" \
+              -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @/tmp/create-pr.json)
+            if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
               python - <<'PY' >/tmp/failure.json
           import json
           from pathlib import Path
-          err=Path('/tmp/pr-create.err').read_text(errors='replace').strip()
+          raw=Path('/tmp/create-pr-response.json').read_text(errors='replace').strip()
+          try:
+              d=json.loads(raw)
+              err=str(d.get("external_error") or d.get("error") or raw)
+          except Exception:
+              err=raw
           print(json.dumps({
             "class":"TRANSIENT",
             "stage":"pr_created",
-            "message":"GitHub PR creation failed",
-            "external_error":err[-4000:] if err else "unknown GitHub CLI error"
+            "message":"Broker-authenticated GitHub PR creation failed",
+            "external_error":err[-4000:]
           }))
           PY
-              cat /tmp/pr-create.err >&2 || true
+              cat /tmp/create-pr-response.json >&2 || true
               exit 1
             fi
-            PR_NUMBER=$(gh pr view "$PR_URL" --repo "$REPO" --json number --jq .number)
+            PR_NUMBER=$(python -c 'import json; print(json.load(open("/tmp/create-pr-response.json"))["pr_number"])')
           fi
           python - <<PY >/tmp/pr-stage.json
           import json

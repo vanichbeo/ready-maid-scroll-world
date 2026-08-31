@@ -221,9 +221,24 @@ jobs:
           PR_NUMBER=$(gh pr list --repo "$REPO" --head "$BRANCH" --state all --limit 1 --json number --jq '.[0].number // empty')
           if [ -z "$PR_NUMBER" ]; then
             ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action","SEO"))')
-            PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
+            if ! PR_URL=$(gh pr create --repo "$REPO" --base main --head "$BRANCH" \
               --title "SEO auto: deterministic ${ACTION}" \
-              --body "Server-side Auto SEO deterministic ${ACTION} with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory.")
+              --body "Server-side Auto SEO deterministic ${ACTION} with exact-stage recovery. One content file only; all production safety gates and reconciliation gates remain mandatory." \
+              2>/tmp/pr-create.err); then
+              python - <<'PY' >/tmp/failure.json
+          import json
+          from pathlib import Path
+          err=Path('/tmp/pr-create.err').read_text(errors='replace').strip()
+          print(json.dumps({
+            "class":"TRANSIENT",
+            "stage":"pr_created",
+            "message":"GitHub PR creation failed",
+            "external_error":err[-4000:] if err else "unknown GitHub CLI error"
+          }))
+          PY
+              cat /tmp/pr-create.err >&2 || true
+              exit 1
+            fi
             PR_NUMBER=$(gh pr view "$PR_URL" --repo "$REPO" --json number --jq .number)
           fi
           python - <<PY >/tmp/pr-stage.json

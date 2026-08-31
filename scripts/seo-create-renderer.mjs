@@ -12,6 +12,11 @@ const value = (name) => {
 };
 
 const sha256 = (v) => crypto.createHash("sha256").update(v).digest("hex");
+const stableJson = (v) => {
+  if (Array.isArray(v)) return "[" + v.map(stableJson).join(",") + "]";
+  if (v && typeof v === "object") return "{" + Object.keys(v).sort().map((k) => JSON.stringify(k) + ":" + stableJson(v[k])).join(",") + "}";
+  return JSON.stringify(v);
+};
 const esc = (s) => String(s)
   .replaceAll("&","&amp;")
   .replaceAll("<","&lt;")
@@ -30,12 +35,17 @@ function assert(cond, message) {
   if (!cond) throw new Error(message);
 }
 
-function loadEnvelope(file) {
-  const envelope = JSON.parse(fs.readFileSync(file, "utf8"));
+function validateEnvelope(envelope) {
   assert(envelope && typeof envelope === "object", "CREATE renderer requires a contract envelope");
   assert(envelope.status === "validated", "CREATE contract status must be validated");
   assert(envelope.schema_version === "create-content-v1", "Unsupported CREATE contract schema");
   assert(/^[a-f0-9]{64}$/.test(String(envelope.contract_hash || "")), "Validated contract_hash required");
+  assert(typeof envelope.contract_canonical === "string" && envelope.contract_canonical.length > 0, "Canonical CREATE contract required");
+  assert(sha256(envelope.contract_canonical) === envelope.contract_hash, "CREATE contract hash mismatch");
+  let canonicalContract;
+  try { canonicalContract = JSON.parse(envelope.contract_canonical); }
+  catch { throw new Error("Canonical CREATE contract is not valid JSON"); }
+  assert(stableJson(canonicalContract) === stableJson(envelope.contract), "CREATE contract payload does not match canonical contract");
   assert(envelope.validation?.validated === true, "CREATE contract validation evidence missing");
   assert(envelope.validation?.exact_render_text_present === true, "Exact render text validation missing");
   assert(envelope.validation?.protected_surface_ok === true, "Protected-surface validation missing");
@@ -44,6 +54,10 @@ function loadEnvelope(file) {
   assert(envelope.validation?.slug_bound_to_action_decision === true, "Slug binding validation missing");
   assert(envelope.contract && typeof envelope.contract === "object", "CREATE contract payload missing");
   return envelope;
+}
+
+function loadEnvelope(file) {
+  return validateEnvelope(JSON.parse(fs.readFileSync(file, "utf8")));
 }
 
 function safePathForSlug(outRoot, slug) {
@@ -130,7 +144,39 @@ function validateRenderContract(c) {
   for (const t of c.schema_types) assert(allowedSchema.has(t), "Unsupported schema type");
 }
 
+function verifyRenderedOutput(html, c, canonical) {
+  assert(html.includes(`<title>${esc(c.title)}</title>`), "Rendered title mismatch");
+  assert(html.includes(`<meta name="description" content="${esc(c.meta_description)}">`), "Rendered meta description mismatch");
+  assert(html.includes(`<h1>${esc(c.h1)}</h1>`), "Rendered H1 mismatch");
+  assert(html.includes(`<a class="cta" href="${esc(c.cta_target)}">${esc(c.cta_label)}</a>`), "Rendered CTA mismatch");
+  assert(html.includes(`<link rel="canonical" href="${esc(canonical)}">`), "Rendered canonical mismatch");
+  for (const s of c.sections) assert(html.includes(esc(s.body)), "Rendered section body mismatch");
+  for (const f of c.faq) assert(html.includes(esc(f.question)) && html.includes(esc(f.answer_brief)), "Rendered FAQ mismatch");
+  for (const l of c.internal_links) assert(html.includes(`href="${esc(l.url)}"`) && html.includes(esc(l.anchor)), "Rendered internal link mismatch");
+  for (const cl of c.claims) assert(html.includes(esc(cl.claim)), "Rendered claim mismatch");
+  assert(!/<script(?! type="application\/ld\+json")/i.test(html), "Unexpected executable script in CREATE output");
+  const schemaMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/i);
+  assert(schemaMatch, "Rendered JSON-LD missing");
+  const graph = JSON.parse(schemaMatch[1]);
+  const renderedTypes = new Set((graph["@graph"] || []).map((x) => x["@type"]));
+  for (const t of c.schema_types) assert(renderedTypes.has(t), `Rendered schema type missing: ${t}`);
+  for (const t of renderedTypes) assert(c.schema_types.includes(t), `Unapproved rendered schema type: ${t}`);
+}
+
+function listFiles(root) {
+  const out = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir,{withFileTypes:true})) {
+      const p=path.join(dir,entry.name);
+      if (entry.isDirectory()) walk(p); else out.push(p);
+    }
+  };
+  if (fs.existsSync(root)) walk(root);
+  return out;
+}
+
 function render(envelope, outRoot) {
+  validateEnvelope(envelope);
   const c = envelope.contract;
   validateRenderContract(c);
   const dest = safePathForSlug(outRoot, c.slug);
@@ -189,6 +235,7 @@ ${related}
 </html>
 `;
 
+  verifyRenderedOutput(html, c, canonical);
   fs.mkdirSync(path.dirname(dest), {recursive:true});
   fs.writeFileSync(dest, html, "utf8");
   return {
@@ -211,10 +258,38 @@ ${related}
 }
 
 function selfTest() {
+  const contract = {
+    schema_version:"create-content-v1",
+    slug:"/guides/phase3d-renderer-proof/",
+    page_type:"guide",
+    title:"Practical Domestic Helper Planning Guide Malaysia",
+    meta_description:"A practical guide for Malaysian households to define domestic helper priorities, interview needs and next steps before making an agency enquiry.",
+    h1:"Planning Your Domestic Helper Needs in Malaysia",
+    direct_answer:"Start by defining the household duties, care priorities, daily routine and communication expectations before comparing helper profiles or arranging interviews.",
+    sections:[
+      {heading:"Define the main household priority",purpose:"Identify the primary reason for hiring before comparing candidates.",body:"Write down the household's main need first, such as child care, elderly support, cooking or general housework. This keeps interviews focused on relevant experience instead of broad claims."},
+      {heading:"Separate essential and secondary duties",purpose:"Distinguish must-have responsibilities from teachable duties.",body:"List duties that must be handled confidently from day one, then separate tasks that can be learned after arrival. This makes candidate comparisons more consistent and easier to explain."},
+      {heading:"Prepare practical interview questions",purpose:"Use consistent questions about experience and routine.",body:"Ask every shortlisted candidate the same practical questions about past duties, household routines, communication and willingness to follow instructions. Compare answers with the available biodata."},
+      {heading:"Plan the next step with the agency",purpose:"Organize requirements before making an enquiry.",body:"Keep the household priorities, preferred experience and key interview questions together before contacting the agency. A clear brief makes the matching conversation more efficient and specific."}
+    ],
+    faq:[{question:"Should I choose nationality first?",answer_brief:"No. Start with the household need, relevant experience and ability to follow the family routine."}],
+    internal_links:[
+      {url:"/guides/helper-interview-questions/",anchor:"helper interview questions"},
+      {url:"/contact-ready-maid/",anchor:"contact Ready Maid"}
+    ],
+    cta_target:"/contact-ready-maid/",
+    cta_label:"Contact Ready Maid",
+    claims:[
+      {claim:"Ready Maid offers Indonesian and Philippine domestic helper matching.",risk:"business_fact",source_type:"locked_knowledge",source_ref:"services.core"}
+    ],
+    schema_types:["WebPage","BreadcrumbList","Article"]
+  };
+  const canonical = JSON.stringify(contract);
   const base = {
     status:"validated",
     schema_version:"create-content-v1",
-    contract_hash:"a".repeat(64),
+    contract_hash:sha256(canonical),
+    contract_canonical:canonical,
     validation:{
       validated:true,
       exact_render_text_present:true,
@@ -223,64 +298,82 @@ function selfTest() {
       cta_bound_to_conversion_destination:true,
       slug_bound_to_action_decision:true
     },
-    contract:{
-      schema_version:"create-content-v1",
-      slug:"/guides/phase3c-renderer-proof/",
-      page_type:"guide",
-      title:"Practical Domestic Helper Planning Guide Malaysia",
-      meta_description:"A practical guide for Malaysian households to define domestic helper priorities, interview needs and next steps before making an agency enquiry.",
-      h1:"Planning Your Domestic Helper Needs in Malaysia",
-      direct_answer:"Start by defining the household duties, care priorities, daily routine and communication expectations before comparing helper profiles or arranging interviews.",
-      sections:[
-        {heading:"Define the main household priority",purpose:"Identify the primary reason for hiring before comparing candidates.",body:"Write down the household's main need first, such as child care, elderly support, cooking or general housework. This keeps interviews focused on relevant experience instead of broad claims."},
-        {heading:"Separate essential and secondary duties",purpose:"Distinguish must-have responsibilities from teachable duties.",body:"List duties that must be handled confidently from day one, then separate tasks that can be learned after arrival. This makes candidate comparisons more consistent and easier to explain."},
-        {heading:"Prepare practical interview questions",purpose:"Use consistent questions about experience and routine.",body:"Ask every shortlisted candidate the same practical questions about past duties, household routines, communication and willingness to follow instructions. Compare answers with the available biodata."},
-        {heading:"Plan the next step with the agency",purpose:"Organize requirements before making an enquiry.",body:"Keep the household priorities, preferred experience and key interview questions together before contacting the agency. A clear brief makes the matching conversation more efficient and specific."}
-      ],
-      faq:[{question:"Should I choose nationality first?",answer_brief:"No. Start with the household need, relevant experience and ability to follow the family routine."}],
-      internal_links:[
-        {url:"/guides/helper-interview-questions/",anchor:"helper interview questions"},
-        {url:"/contact-ready-maid/",anchor:"contact Ready Maid"}
-      ],
-      cta_target:"/contact-ready-maid/",
-      cta_label:"Contact Ready Maid",
-      claims:[
-        {claim:"Ready Maid offers Indonesian and Philippine domestic helper matching.",risk:"business_fact",source_type:"locked_knowledge",source_ref:"services.core"}
-      ],
-      schema_types:["WebPage","BreadcrumbList","Article"]
-    }
+    contract
   };
 
-  const a = fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-a-"));
-  const b = fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-b-"));
+  const rootA=fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-a-"));
+  const rootB=fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-b-"));
+  const tempRoots=[rootA,rootB];
+  const results={};
+  const expectBlocked=(name,fn)=>{
+    let blocked=false;
+    try { fn(); } catch { blocked=true; }
+    assert(blocked,`${name} was not blocked`);
+    results[name]=true;
+  };
   try {
-    const ra = render(base,a);
-    const rb = render(base,b);
-    assert(ra.output_sha256 === rb.output_sha256, "Renderer is not deterministic");
-    const rendered = fs.readFileSync(path.join(a,ra.target_file),"utf8");
-    assert(rendered.includes(esc(base.contract.sections[0].body)), "Approved section body missing");
-    assert(rendered.includes(esc(base.contract.claims[0].claim)), "Approved claim missing");
-    assert(!rendered.includes(base.contract.sections[0].purpose), "Planning purpose leaked into page");
+    const ra=render(base,rootA);
+    const rb=render(base,rootB);
+    assert(ra.output_sha256===rb.output_sha256,"Renderer is not deterministic");
+    results.deterministic=true;
 
-    const badSlug = structuredClone(base);
-    badSlug.contract.slug = "/";
-    let blocked = false;
-    try { render(badSlug,fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-bad-"))); } catch { blocked = true; }
-    assert(blocked,"Protected slug was not blocked");
+    const files=listFiles(rootA);
+    assert(files.length===1,"Renderer created extra output files");
+    assert(path.basename(files[0])==="index.html","Renderer output filename changed");
+    results.one_file_only=true;
 
-    const badStatus = structuredClone(base);
-    badStatus.status = "superseded";
-    const p = path.join(os.tmpdir(),`seo-contract-${process.pid}.json`);
-    fs.writeFileSync(p,JSON.stringify(badStatus),"utf8");
-    blocked = false;
-    try { loadEnvelope(p); } catch { blocked = true; }
-    fs.rmSync(p,{force:true});
-    assert(blocked,"Unvalidated contract envelope was not blocked");
+    const rendered=fs.readFileSync(files[0],"utf8");
+    assert(rendered.includes(esc(contract.sections[0].body)),"Approved section body missing");
+    assert(rendered.includes(esc(contract.claims[0].claim)),"Approved claim missing");
+    assert(!rendered.includes(contract.sections[0].purpose),"Planning purpose leaked into page");
+    results.exact_contract_text=true;
 
-    console.log(JSON.stringify({ok:true,deterministic:true,protected_slug_blocked:true,unvalidated_blocked:true,output_sha256:ra.output_sha256}));
+    expectBlocked("duplicate_slug_blocked",()=>render(base,rootA));
+
+    const badSchema=structuredClone(base);
+    badSchema.contract.schema_types.push("FAQPage");
+    expectBlocked("malformed_schema_blocked",()=>render(badSchema,fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-schema-"))));
+
+    const badLink=structuredClone(base);
+    badLink.contract.internal_links[0].url="https://evil.example/";
+    expectBlocked("invalid_internal_link_blocked",()=>render(badLink,fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-link-"))));
+
+    const changedClaim=structuredClone(base);
+    changedClaim.contract.claims[0].claim="This unapproved claim was injected after validation.";
+    expectBlocked("unapproved_claim_blocked",()=>render(changedClaim,fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-claim-"))));
+
+    const changedCta=structuredClone(base);
+    changedCta.contract.cta_target="/fees-payment-replacement-policy/";
+    expectBlocked("changed_cta_blocked",()=>render(changedCta,fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-cta-"))));
+
+    for (const key of ["title","meta_description","h1"]) {
+      const changed=structuredClone(base);
+      changed.contract[key]=changed.contract[key]+" changed after validation";
+      expectBlocked(`changed_${key}_blocked`,()=>render(changed,fs.mkdtempSync(path.join(os.tmpdir(),`seo-create-3d-${key}-`))));
+    }
+
+    const protectedSlug=structuredClone(base);
+    protectedSlug.contract.slug="/";
+    protectedSlug.contract_canonical=JSON.stringify(protectedSlug.contract);
+    protectedSlug.contract_hash=sha256(protectedSlug.contract_canonical);
+    expectBlocked("protected_surface_blocked",()=>render(protectedSlug,fs.mkdtempSync(path.join(os.tmpdir(),"seo-create-3d-protected-"))));
+
+    const superseded=structuredClone(base);
+    superseded.status="superseded";
+    expectBlocked("unvalidated_contract_blocked",()=>validateEnvelope(superseded));
+
+    const tamperedHtml=rendered.replace(
+      `<meta name="description" content="${esc(contract.meta_description)}">`,
+      '<meta name="description" content="tampered">'
+    );
+    expectBlocked("rendered_output_tamper_blocked",()=>verifyRenderedOutput(tamperedHtml,contract,`https://readymaid.my${contract.slug}`));
+
+    const executableScript=rendered.replace("</body>","<script>alert(1)</script></body>");
+    expectBlocked("unexpected_script_blocked",()=>verifyRenderedOutput(executableScript,contract,`https://readymaid.my${contract.slug}`));
+
+    console.log(JSON.stringify({ok:true,...results,output_sha256:ra.output_sha256}));
   } finally {
-    fs.rmSync(a,{recursive:true,force:true});
-    fs.rmSync(b,{recursive:true,force:true});
+    for (const root of tempRoots) fs.rmSync(root,{recursive:true,force:true});
   }
 }
 

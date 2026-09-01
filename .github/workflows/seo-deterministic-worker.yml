@@ -160,7 +160,7 @@ jobs:
           x=json.load(open('/tmp/seo-worker-result.json'))
           expected=set(x.get('surface_files') or [])
           actual=set()
-          for line in subprocess.check_output(['git','status','--porcelain'],text=True).splitlines():
+          for line in subprocess.check_output(['git','status','--porcelain','--untracked-files=all'],text=True).splitlines():
               p=line[3:]
               if ' -> ' in p:
                   p=p.split(' -> ',1)[1]

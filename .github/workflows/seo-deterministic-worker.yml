@@ -156,19 +156,19 @@ jobs:
           if [ "$ACTION" = "CREATE" ]; then
             test "$CHANGED" = "3"
             python - <<'PY'
-import json, subprocess, sys
-x=json.load(open('/tmp/seo-worker-result.json'))
-expected=set(x.get('surface_files') or [])
-actual=set()
-for line in subprocess.check_output(['git','status','--porcelain'],text=True).splitlines():
-    p=line[3:]
-    if ' -> ' in p:
-        p=p.split(' -> ',1)[1]
-    actual.add(p)
-if len(expected)!=3 or actual!=expected:
-    print(json.dumps({"expected":sorted(expected),"actual":sorted(actual)}))
-    sys.exit(1)
-PY
+          import json, subprocess, sys
+          x=json.load(open('/tmp/seo-worker-result.json'))
+          expected=set(x.get('surface_files') or [])
+          actual=set()
+          for line in subprocess.check_output(['git','status','--porcelain'],text=True).splitlines():
+              p=line[3:]
+              if ' -> ' in p:
+                  p=p.split(' -> ',1)[1]
+              actual.add(p)
+          if len(expected)!=3 or actual!=expected:
+              print(json.dumps({"expected":sorted(expected),"actual":sorted(actual)}))
+              sys.exit(1)
+          PY
             python scripts/seo_surface_sync.py --check
           else
             test "$CHANGED" = "1"

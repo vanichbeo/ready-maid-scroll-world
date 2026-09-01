@@ -485,8 +485,8 @@ jobs:
               sys.exit(1)
           canonical_expected="https://readymaid.my"+x["target_url"]
           canonical_found=None
-          for tag in re.findall(r'<link\\b[^>]*>',page,re.I):
-              attrs={k.lower():v for k,_,v in re.findall(r'([:\\w-]+)\\s*=\\s*(["\\'])(.*?)\\2',tag,re.I|re.S)}
+          for tag in re.findall(r'<link\b[^>]*>',page,re.I):
+              attrs={k.lower():v for k,_,v in re.findall(r'([:\w-]+)\s*=\s*(["\'])(.*?)\2',tag,re.I|re.S)}
               if attrs.get('rel','').lower()=='canonical':
                   canonical_found=html.unescape(attrs.get('href','')).strip()
                   break
@@ -503,7 +503,7 @@ jobs:
                   for vv in v.values(): collect(vv)
               elif isinstance(v,list):
                   for vv in v: collect(vv)
-          for raw in re.findall(r'<script[^>]+type=["\\']application/ld\\+json["\\'][^>]*>(.*?)</script>',page,re.I|re.S):
+          for raw in re.findall(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',page,re.I|re.S):
               try: collect(_json.loads(html.unescape(raw.strip())))
               except Exception: sys.exit(1)
           if not set(x.get('schema_types') or []).issubset(found_types):

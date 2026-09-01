@@ -348,6 +348,12 @@ jobs:
           PR="${{ steps.pr.outputs.pr_number }}"
           MERGED_AT=$(gh pr view "$PR" --repo "$REPO" --json mergedAt --jq '.mergedAt // empty')
           if [ -z "$MERGED_AT" ]; then
+            for i in {1..60}; do
+              MERGE_STATE=$(gh pr view "$PR" --repo "$REPO" --json mergeStateStatus --jq .mergeStateStatus)
+              [ "$MERGE_STATE" = "CLEAN" ] && break
+              sleep 10
+            done
+            [ "$MERGE_STATE" = "CLEAN" ]
             gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
           fi
           MERGE_SHA=$(gh pr view "$PR" --repo "$REPO" --json mergeCommit --jq '.mergeCommit.oid')

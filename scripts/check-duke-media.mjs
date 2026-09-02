@@ -1,4 +1,4 @@
-const base = 'https://readymaid.my/assets/';
+const base = 'https://ready-maid-scroll-world-7pp6hk62l-readymaid.vercel.app/assets/';
 const assets = [
   'duke.jpg',
   'duke-thumbnails/experience-vs-no-experience.png',

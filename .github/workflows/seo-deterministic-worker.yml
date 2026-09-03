@@ -77,7 +77,7 @@ jobs:
               f.write(f"resume_from={d.get('resume_from','change_prepared')}\n")
               for s in ['change_prepared','qa_passed','branch_created','pr_created','ci_passed','merged','deployment_ready','live_verified','reconciled']:
                   f.write(f"{s}_done={'true' if stages.get(s,{}).get('status')=='completed' else 'false'}\n")
-              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') in ('RELINK','UPDATE','CREATE')
+              active = bool(d.get('ok')) and not bool(d.get('terminal')) and d.get('action') == 'CREATE'
               f.write(f"active={'true' if active else 'false'}\n")
           PY
 
@@ -153,8 +153,12 @@ jobs:
           node scripts/seo-deterministic-worker.mjs --lease /tmp/seo-lease.json --out /tmp/seo-worker-result.json
           ACTION=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json")).get("action",""))')
           CHANGED=$(git status --porcelain | wc -l | tr -d ' ')
+          if [ "$ACTION" != "CREATE" ]; then
+            echo "Auto SEO immutable boundary rejects non-CREATE action: $ACTION" >&2
+            exit 1
+          fi
+          test "$CHANGED" = "2"
           if [ "$ACTION" = "CREATE" ]; then
-            test "$CHANGED" = "3"
             python - <<'PY'
           import json, subprocess, sys
           x=json.load(open('/tmp/seo-worker-result.json'))
@@ -165,14 +169,18 @@ jobs:
               if ' -> ' in p:
                   p=p.split(' -> ',1)[1]
               actual.add(p)
-          if len(expected)!=3 or actual!=expected:
+          if len(expected)!=2 or actual!=expected:
               print(json.dumps({"expected":sorted(expected),"actual":sorted(actual)}))
               sys.exit(1)
           PY
             python scripts/seo_surface_sync.py --check
-          else
-            test "$CHANGED" = "1"
           fi
+          TARGET_FILE=$(python -c 'import json; print(json.load(open("/tmp/seo-worker-result.json"))["target_file"])')
+          [[ "$TARGET_FILE" =~ ^guides/[a-z0-9][a-z0-9/-]*/index\.html$ ]]
+          ! git cat-file -e "HEAD:$TARGET_FILE" 2>/dev/null
+          ACTUAL=$(git status --porcelain --untracked-files=all | sed -E 's/^...//' | sort)
+          EXPECTED=$(printf "%s\n%s\n" "$TARGET_FILE" "sitemap.xml" | sort)
+          test "$ACTUAL" = "$EXPECTED"
           git diff --check
           INPUT_HASH=$(sha256sum /tmp/seo-lease.json | awk '{print $1}')
           OUTPUT_HASH=$(sha256sum /tmp/seo-worker-result.json | awk '{print $1}')

@@ -22,8 +22,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Prove bounded SEO UPDATE executor
-        run: node scripts/seo-update-worker-selftest.mjs
+      - name: Enforce immutable Auto SEO post boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          case "$BRANCH" in
+            seo-auto-*|seo-immutable-post-boundary) ;;
+            *) echo "Non Auto-SEO branch; immutable write-boundary check not applicable"; exit 0 ;;
+          esac
+          git fetch origin main --depth=1
+          mapfile -t CHANGED < <(git diff --name-only origin/main...HEAD | sort)
+          printf 'Changed paths:\n%s\n' "${CHANGED[*]}"
+          test "${#CHANGED[@]}" -eq 2
+          test "${CHANGED[1]}" = "sitemap.xml" || test "${CHANGED[0]}" = "sitemap.xml"
+          TARGET=""
+          for p in "${CHANGED[@]}"; do
+            if [[ "$p" =~ ^guides/[a-z0-9][a-z0-9/-]*/index\.html$ ]]; then TARGET="$p"; fi
+          done
+          test -n "$TARGET"
+          ! git cat-file -e "origin/main:$TARGET" 2>/dev/null
+          case "$TARGET" in *.jpg|*.jpeg|*.png|*.webp|*.gif|*.svg|*.mp4|*.webm|*.mov) exit 1;; esac
       - name: Prove deterministic SEO CREATE renderer
         run: node scripts/seo-create-renderer.mjs --self-test
       - name: Prove minimal deterministic SEO REDIRECT executor
@@ -34,7 +53,7 @@ jobs:
         run: node scripts/vercel-seo-guard.mjs --ci
       - name: Audit sitemap pages, metadata, assets and links
         run: node scripts/seo-site-audit.mjs
-      - name: Verify guide hub and sitemap synchronization
+      - name: Verify sitemap discovery for published guides
         run: python scripts/seo_surface_sync.py --check
       - name: Verify protected Meet DUKE remote media
         run: node scripts/check-duke-media.mjs

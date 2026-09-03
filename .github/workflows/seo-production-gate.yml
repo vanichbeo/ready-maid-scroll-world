@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           case "$BRANCH" in
-            seo-auto-*|seo-immutable-post-boundary) ;;
+            seo-auto-*) ;;
             *) echo "Non Auto-SEO branch; immutable write-boundary check not applicable"; exit 0 ;;
           esac
           git fetch origin main --depth=1

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Verify published guide discovery surfaces stay synchronized.
+"""Verify every published guide is discoverable in sitemap.xml.
 
-Scans guides/*/index.html (excluding guides/index.html), extracts each page's
-canonical URL and <title>, and verifies every published guide is represented
-in both guides/index.html and sitemap.xml. Designed for --check in CI.
+Auto SEO treats existing Readymaid pages, including guides/index.html, as immutable.
+New guides are therefore required in sitemap.xml but are not allowed to rewrite the hub.
 """
 from __future__ import annotations
 
@@ -55,29 +54,20 @@ def published_guides():
 
 
 def check() -> int:
-    hub = HUB.read_text(encoding="utf-8")
     sitemap = SITEMAP.read_text(encoding="utf-8")
-    hrefs = set(HREF_RE.findall(hub))
     locs = {html.unescape(x.strip()) for x in LOC_RE.findall(sitemap)}
     errors = []
     guides = published_guides()
     for path, title, canonical in guides:
-        if path not in hrefs:
-            errors.append(f"hub missing {path} ({title})")
         if canonical not in locs:
             errors.append(f"sitemap missing {canonical}")
-    guide_hrefs = {h for h in hrefs if h.startswith('/guides/') and h != '/guides/'}
-    valid_paths = {g[0] for g in guides}
-    for path in sorted(guide_hrefs - valid_paths):
-        errors.append(f"hub has stale/nonexistent guide link {path}")
     if errors:
         print("SEO surface sync FAILED")
         for err in errors:
             print(f"- {err}")
         return 1
-    print(f"SEO surface sync PASS: {len(guides)} published guides represented in hub and sitemap")
+    print(f"SEO surface sync PASS: {len(guides)} published guides represented in sitemap")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()

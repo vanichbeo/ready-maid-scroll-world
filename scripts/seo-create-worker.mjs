@@ -32,29 +32,12 @@ const slug=String(c.slug||"");
 const canonical=`https://readymaid.my${slug}`;
 if(c.page_type!=="guide") throw new Error("CREATE v1 supports guide surface sync only");
 
-const hubPath="guides/index.html";
 const sitemapPath="sitemap.xml";
-let hub=fs.readFileSync(hubPath,"utf8");
 let sitemap=fs.readFileSync(sitemapPath,"utf8");
-if(hub.includes(`href="${slug}"`)) throw new Error("Guide hub already contains CREATE target");
 if(sitemap.includes(`<loc>${canonical}</loc>`)) throw new Error("Sitemap already contains CREATE target");
-
-const faqCount=Array.isArray(c.faq)?c.faq.length:0;
-const li=`<li><a href="${slug}">${c.h1}</a> — ${faqCount} FAQs</li>`;
-const hubListMarker="</ul></section><div class=\"guide-hub-grid\">";
-if(!hub.includes(hubListMarker)) throw new Error("Guide hub list marker missing");
-hub=hub.replace(hubListMarker,`${li}</ul></section><div class="guide-hub-grid">`);
-
-const card=`<a class="guide-hub-card" href="${slug}"><strong>${c.h1}</strong><span>Open guide</span></a>`;
-const gridMarker='</div><section aria-label="Legal operator"';
-if(!hub.includes(gridMarker)) throw new Error("Guide hub card marker missing");
-hub=hub.replace(gridMarker,`${card}</div><section aria-label="Legal operator"`);
-
 const siteMarker="</urlset>";
 if(!sitemap.includes(siteMarker)) throw new Error("Sitemap closing marker missing");
 sitemap=sitemap.replace(siteMarker,`  <url><loc>${canonical}</loc></url>\n</urlset>`);
-
-fs.writeFileSync(hubPath,hub,"utf8");
 fs.writeFileSync(sitemapPath,sitemap,"utf8");
 
 execFileSync("python",["scripts/seo_surface_sync.py","--check"],{stdio:"inherit"});
@@ -68,8 +51,7 @@ const final={
   create_verified:true,
   contract_hash:envelope.contract_hash,
   output_sha256:result.output_sha256,
-  surface_files:[result.target_file,hubPath,sitemapPath],
-  hub_sha256:sha256(fs.readFileSync(hubPath)),
+  surface_files:[result.target_file,sitemapPath],
   sitemap_sha256:sha256(fs.readFileSync(sitemapPath))
 };
 fs.writeFileSync(outPath,JSON.stringify(final,null,2)+"\n","utf8");

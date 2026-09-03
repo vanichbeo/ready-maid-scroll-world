@@ -124,17 +124,11 @@ function updateMetadata() {
   };
 }
 
-let result;
-if (action === "RELINK") result = relink();
-else if (action === "UPDATE") result = updateMetadata();
-else if (action === "CREATE") {
-  execFileSync(process.execPath,[
-    "scripts/seo-create-worker.mjs",
-    "--lease",leasePath,
-    "--out",outPath
-  ],{stdio:"inherit"});
-  result=JSON.parse(fs.readFileSync(outPath,"utf8"));
-} else throw new Error(`Unsupported action: ${action}`);
-
-if (action !== "CREATE") fs.writeFileSync(outPath, JSON.stringify(result, null, 2) + "\n", "utf8");
+if (action !== "CREATE") throw new Error("Auto SEO production boundary permits CREATE only; existing Readymaid pages are immutable");
+execFileSync(process.execPath,[
+  "scripts/seo-create-worker.mjs",
+  "--lease",leasePath,
+  "--out",outPath
+],{stdio:"inherit"});
+const result=JSON.parse(fs.readFileSync(outPath,"utf8"));
 console.log(JSON.stringify(result));
